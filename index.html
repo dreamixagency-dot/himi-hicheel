@@ -415,7 +415,6 @@
         let toneStarted = false;
         let uiSynth;
         let speechUnlocked = false; // ШИНЭ: Унших функцийг сэрээсэн эсэх
-        const ttsAudio = new Audio(); // 100% НАЙДВАРТАЙ: MP3 аудио тоглуулагч
 
         async function initAudio() {
             try {
@@ -462,9 +461,6 @@
                 if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
                     await Tone.context.resume();
                 }
-                
-                // ШИНЭ: MP3 тоглуулагчийг гар утасны хөтөч дээр сэрээх (Unlock)
-                ttsAudio.load();
                 
                 // ШИНЭ: Messenger-ийн дотоод хөтөч дээр Speech API-г хүчээр сэрээх (Зөвхөн анхны даралтаар)
                 if (!speechUnlocked && typeof window !== 'undefined' && window.speechSynthesis) {
@@ -819,67 +815,49 @@
             if (e.target === modal) closeModal();
         });
 
-        // ШИНЭ: Samsung S22 болон Android Messenger-ийн давхар даралтыг хаах хувьсагч
-        let lastSpeakTime = 0;
-        // let ttsAudio = null; хуучин дахин зарласан хэсгийг устгалаа (Дээд талд const ttsAudio = new Audio() гэж байгаа)
+        window.lastSpeakTime = 0;
 
         function speakWord(text) {
-            try {
-                // Хамгаалалт 1: Давхар даралтаас сэргийлэх (400ms дотор давхар дарахыг алгасах)
-                const now = Date.now();
-                if (now - lastSpeakTime < 400) return;
-                lastSpeakTime = now;
-
-                // Хамгаалалт 2: Өмнө нь дуугарч байсан бол зогсоох
-                if (ttsAudio) {
-                    ttsAudio.pause();
-                    ttsAudio.currentTime = 0;
-                }
-                if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking) {
-                    window.speechSynthesis.cancel();
-                }
-
-                // АРГА 1: Google Translate TTS API (MP3 дуу хэлбэрээр татаж тоглох - Хамгийн найдвартай)
-                // Энэ нь утасны дотоод TTS гацах асуудлыг 100% тойрч гарна.
-                const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
-                ttsAudio.src = url; // Шинээр үүсгэх биш (new Audio()), эх сурвалжийг нь л солино
-                
-                ttsAudio.play().catch(err => {
-                    console.warn("MP3 Audio тоглуулахад алдаа гарлаа, нөөц хувилбар руу шилжиж байна:", err);
-                    // АРГА 2: Хэрэв MP3 дуугарч чадахгүй бол утасны өөрийнх нь TTS-ээр уншуулна (Нөөц хувилбар)
-                    fallbackSpeak(text);
-                });
-
-            } catch (error) {
-                console.warn("Speech Synthesis failed:", error);
-                fallbackSpeak(text);
-            }
-        }
-
-        function fallbackSpeak(text) {
             if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+            // Давхар даралтаас сэргийлэх (Touch & Click)
+            const now = Date.now();
+            if (now - window.lastSpeakTime < 400) return;
+            window.lastSpeakTime = now;
+
             try {
-                const synthObj = window.speechSynthesis;
-                if (synthObj.paused) synthObj.resume();
+                const synth = window.speechSynthesis;
                 
-                // Android Messenger-ийн хөтөч дээр Cancel/Resume хийсний дараа шууд Speak дуудвал гацдаг тул бага зэрэг хүлээлгэнэ
-                setTimeout(() => {
-                    window.currentUtterance = new SpeechSynthesisUtterance(text);
-                    window.currentUtterance.lang = 'en-US'; 
-                    window.currentUtterance.volume = 1;
-                    window.currentUtterance.rate = 0.85; 
-                    
-                    const voices = synthObj.getVoices();
-                    if (voices && voices.length > 0) {
-                        const enVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) 
-                                     || voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) 
-                                     || voices.find(v => v.lang.includes('en'));
-                        if(enVoice) window.currentUtterance.voice = enVoice;
-                    }
-                    
-                    synthObj.speak(window.currentUtterance);
-                }, 50);
-            } catch(e) {}
+                // Өмнөх уншиж байсан дууг зогсоох
+                if (synth.speaking || synth.pending) {
+                    synth.cancel();
+                }
+
+                // Гацалтаас сэргийлж Global хувьсагчид хадгалах (Garbage Collection хамгаалалт)
+                window.currentUtterance = new SpeechSynthesisUtterance(text);
+                window.currentUtterance.lang = 'en-US';
+                window.currentUtterance.rate = 0.9;
+                window.currentUtterance.volume = 1;
+
+                // Хамгийн тод Англи хоолойг сонгох
+                const voices = synth.getVoices();
+                if (voices && voices.length > 0) {
+                    const enVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) 
+                                 || voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) 
+                                 || voices.find(v => v.lang.includes('en'));
+                    if (enVoice) window.currentUtterance.voice = enVoice;
+                }
+
+                // ШУУД унших (Ямар ч setTimeout байх ёсгүй!)
+                synth.speak(window.currentUtterance);
+
+                // Зарим iOS хөтөч дээр pause төлөвт орсон байвал сэргээх
+                if (synth.paused) {
+                    synth.resume();
+                }
+            } catch (error) {
+                console.warn("Speech API Error:", error);
+            }
         }
 
         /* -----------------------------------------
@@ -1118,31 +1096,9 @@
         }
 
         /* -----------------------------------------
-           ШИНЭ: МОГОЙ ТОГЛООМ (SNAKE QUIZ) & ДУУДЛАГА
+           ШИНЭ: МОГОЙ ТОГЛООМ (SNAKE QUIZ)
         ----------------------------------------- */
         
-        function speakWord(text) {
-            try {
-                if (typeof window === 'undefined' || !window.speechSynthesis) return;
-                const synthObj = window.speechSynthesis;
-                synthObj.cancel(); // stop current
-                
-                // ШИНЭ: iOS болон Messenger дээр санах ойноос устгагдаж гацдаг (Garbage collection) алдааг засахын тулд Global хувьсагчид хадгална
-                window.currentUtterance = new SpeechSynthesisUtterance(text);
-                window.currentUtterance.lang = 'en-US'; 
-                
-                const voices = synthObj.getVoices();
-                const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
-                if(enVoice) window.currentUtterance.voice = enVoice;
-                
-                window.currentUtterance.rate = 0.85; // Утсан дээр тод сонсогдуулахын тулд бага зэрэг удаашруулав
-                
-                synthObj.speak(window.currentUtterance);
-            } catch (error) {
-                console.warn("Speech Synthesis blocked:", error);
-            }
-        }
-
         // Могой тоглоомын хувьсагчид
         let snake = [];
         let snakeDir = {x: 1, y: 0};
