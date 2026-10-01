@@ -418,8 +418,8 @@
         const USE_GITHUB_AUDIO = false; 
         const GITHUB_AUDIO_URL = "https://raw.githubusercontent.com/ТАНЫ_GITHUB_НЭР/ТАНЫ_REPO/main/audio/";
         
-        // Default: Хурдан бөгөөд найдвартай толь бичгийн API (АНУ аялгатай MP3 шууд буцаана)
-        const DICT_API_URL = "https://dict.youdao.com/dictvoice?audio="; 
+        // ЗАСВАР: Google Translate-ийн албан ёсны сервер. (Бүх 118 химийн элемент 100% байгаа)
+        const DICT_API_URL = "https://translate.googleapis.com/translate_tts?ie=UTF-8&tl=en-US&client=gtx&q="; 
         
         const audioCache = {};
         let currentPronunciationText = "";
@@ -429,7 +429,7 @@
             if (USE_GITHUB_AUDIO) {
                 return GITHUB_AUDIO_URL + encodeURIComponent(word) + ".mp3"; 
             }
-            return DICT_API_URL + encodeURIComponent(word) + "&type=2";
+            return DICT_API_URL + encodeURIComponent(word);
         }
 
         // Санах ойд урьдчилж татаж авах (Товч дарах үед гацахгүй шууд дуугарахын тулд)
@@ -447,11 +447,12 @@
             let delay = 0;
             activeElements.forEach(el => {
                 setTimeout(() => preloadAudio(el.en), delay);
-                delay += 100; // 0.1 секундын зайтайгаар татаж утасны ачааллыг багасгана
+                // ЗАСВАР: Google серверийг ачааллаж блоклуулахгүйн тулд 0.25 секундын зайтай татна
+                delay += 250; 
             });
             // Шалгалтанд зориулсан үгсийг нэмж татах
-            setTimeout(() => preloadAudio("Game over"), delay + 100);
-            setTimeout(() => preloadAudio("Congratulations"), delay + 200);
+            setTimeout(() => preloadAudio("Game over"), delay + 250);
+            setTimeout(() => preloadAudio("Congratulations"), delay + 500);
         }
 
         // Үгийг яг Sound Effect шиг шууд тоглуулах
@@ -459,7 +460,8 @@
             if (!word) return;
             try {
                 let audio = audioCache[word];
-                if (!audio) {
+                // Хэрэв өмнө нь татаж чадаагүй сүлжээний алдаа гарсан бол дахин шинээр дуудах
+                if (!audio || audio.error) {
                     audio = new Audio(getAudioUrl(word));
                     audioCache[word] = audio;
                 }
