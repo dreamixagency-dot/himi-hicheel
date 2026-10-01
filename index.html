@@ -599,8 +599,11 @@
             document.getElementById('fc-symbol-box').style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
             document.getElementById('fc-border').style.border = `4px solid ${colors[0]}`;
 
-            // Setup speech
-            speakBtn.onclick = () => speakWord(data.mn);
+            // Setup speech - Зөвхөн дарсан үед ажиллах
+            speakBtn.onclick = (e) => {
+                e.stopPropagation();
+                speakWord(data.mn);
+            };
 
             // Show modal with animation
             modal.classList.remove('hidden');
@@ -610,8 +613,7 @@
                 modalContent.classList.add('scale-100');
             }, 10);
             
-            // Speak automatically
-            speakWord(data.mn);
+            // Жич: Хөтчийн auto-play хоригоос сэргийлж автоматаар дуугарахыг устгасан
         }
 
         function closeModal() {
@@ -630,6 +632,7 @@
         });
 
         function speakWord(text) {
+            if (!synth) return;
             synth.cancel(); // stop current
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'mn-MN'; // Mongolian
@@ -639,7 +642,11 @@
             if(mnVoice) utterance.voice = mnVoice;
             
             utterance.rate = 0.9;
-            synth.speak(utterance);
+            
+            // Утсан дээр шууд дуудахад тасалддаг тул маш бага хүлээлттэй дуудах
+            setTimeout(() => {
+                synth.speak(utterance);
+            }, 50);
         }
 
         /* -----------------------------------------
@@ -746,7 +753,7 @@
             
             return `
             <div class="rounded-[1.5rem] p-6 bg-slate-800 relative overflow-hidden flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 w-full" style="border-color: ${colors[0]}">
-                <button onclick="speakWord('${data.mn.replace(/'/g, "\\'")}')" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-900 rounded-full p-2 shadow-lg hover:scale-110 transition">
+                <button id="carousel-speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-900 rounded-full p-2 shadow-lg hover:scale-110 transition z-50 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
                 </button>
                 <div class="w-32 h-32 rounded-2xl flex flex-col items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] mt-4" style="background: ${bgGradient}">
@@ -790,7 +797,16 @@
             if (direction === 'prev') carouselCardContainer.classList.add('slide-in-left');
 
             carouselCardContainer.innerHTML = getCardHTML(data);
-            speakWord(data.mn);
+            
+            // Дууны товчийг картан дээр шинээр холбож өгөх
+            const carSpeakBtn = document.getElementById('carousel-speak-btn');
+            if (carSpeakBtn) {
+                carSpeakBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    speakWord(data.mn);
+                });
+            }
         }
 
         document.getElementById('car-next').addEventListener('click', () => {
@@ -874,8 +890,6 @@
             } else {
                  quizTargetName.textContent = currentQuizElement.mn;
             }
-            
-            speakWord(currentQuizElement.mn);
         }
 
         function checkQuizAnswer(clickedData, elementNode) {
