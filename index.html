@@ -775,19 +775,14 @@
 
             // Setup speech - Англи бүтэн нэрээр нь унших (Messenger-т зориулж touchstart нэмэв)
             const handleSpeak = (e) => {
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
                 speakWord(data.en);
             };
             
-            // Хуучин event-үүдийг цэвэрлэж давхардахаас сэргийлэх
-            speakBtn.onclick = null;
-            speakBtn.removeEventListener('click', handleSpeak);
-            speakBtn.removeEventListener('touchstart', handleSpeak);
-            
-            // Зөвхөн хуруугаар хүрэх болон дарах үед шууд ажиллана
-            speakBtn.addEventListener('click', handleSpeak);
-            speakBtn.addEventListener('touchstart', handleSpeak, {passive: false});
+            // ЗАСВАР: Хуучин командууд давхардаж утас гацаахаас сэргийлж зөвхөн ганц үйлдэл үлдээх
+            speakBtn.onclick = handleSpeak;
+            speakBtn.ontouchstart = handleSpeak;
 
             // Show modal with animation
             modal.classList.remove('hidden');
@@ -816,48 +811,42 @@
         });
 
         window.lastSpeakTime = 0;
+        const backupSynthAudio = new Audio(); // MP3 тоглуулагч
 
         function speakWord(text) {
-            if (typeof window === 'undefined' || !window.speechSynthesis) return;
-
-            // Давхар даралтаас сэргийлэх (Touch & Click)
             const now = Date.now();
-            if (now - window.lastSpeakTime < 400) return;
+            if (now - window.lastSpeakTime < 600) return; // Давхар даралтаас хамгаалах
             window.lastSpeakTime = now;
 
+            // 1. Хамгийн найдвартай арга: MP3 (Google TTS) ашиглах
+            try {
+                backupSynthAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(text)}`;
+                backupSynthAudio.play().catch(e => {
+                    // Хэрвээ MP3 ажиллахгүй бол (интернэтгүй үед) утасны өөрийнхийг ашиглах
+                    playLocalTTS(text);
+                });
+            } catch (error) {
+                playLocalTTS(text);
+            }
+        }
+
+        function playLocalTTS(text) {
+            if (typeof window === 'undefined' || !window.speechSynthesis) return;
             try {
                 const synth = window.speechSynthesis;
+                if (synth.speaking || synth.pending) synth.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
                 
-                // Өмнөх уншиж байсан дууг зогсоох
-                if (synth.speaking || synth.pending) {
-                    synth.cancel();
-                }
-
-                // Гацалтаас сэргийлж Global хувьсагчид хадгалах (Garbage Collection хамгаалалт)
-                window.currentUtterance = new SpeechSynthesisUtterance(text);
-                window.currentUtterance.lang = 'en-US';
-                window.currentUtterance.rate = 0.9;
-                window.currentUtterance.volume = 1;
-
-                // Хамгийн тод Англи хоолойг сонгох
                 const voices = synth.getVoices();
-                if (voices && voices.length > 0) {
-                    const enVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) 
-                                 || voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) 
-                                 || voices.find(v => v.lang.includes('en'));
-                    if (enVoice) window.currentUtterance.voice = enVoice;
-                }
+                const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en'));
+                if (enVoice) utterance.voice = enVoice;
 
-                // ШУУД унших (Ямар ч setTimeout байх ёсгүй!)
-                synth.speak(window.currentUtterance);
-
-                // Зарим iOS хөтөч дээр pause төлөвт орсон байвал сэргээх
-                if (synth.paused) {
-                    synth.resume();
-                }
-            } catch (error) {
-                console.warn("Speech API Error:", error);
-            }
+                synth.speak(utterance);
+                if (synth.paused) synth.resume();
+            } catch (e) { console.warn("Local TTS error", e); }
         }
 
         /* -----------------------------------------
@@ -1051,15 +1040,16 @@
         const carSpeakBtn = document.getElementById('carousel-speak-btn');
         if (carSpeakBtn) {
             const handleCarSpeak = (e) => {
-                e.preventDefault();
+                if(e.cancelable) e.preventDefault();
                 e.stopPropagation();
                 if (activeElements.length > 0) {
                     const data = activeElements[carouselIndex];
                     speakWord(data.en);
                 }
             };
-            carSpeakBtn.addEventListener('click', handleCarSpeak);
-            carSpeakBtn.addEventListener('touchstart', handleCarSpeak, {passive: false});
+            // ЗАСВАР: Давхардаж ажиллахаас сэргийлсэн
+            carSpeakBtn.onclick = handleCarSpeak;
+            carSpeakBtn.ontouchstart = handleCarSpeak;
         }
 
         // Утасны дэлгэц дээр Swipe хийх тохиргоо
