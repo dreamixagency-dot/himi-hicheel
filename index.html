@@ -146,6 +146,30 @@
             filter: grayscale(100%);
         }
 
+        /* Flashcard Flip Styles (ШИНЭ) */
+        .flip-container {
+            perspective: 1000px;
+            width: 100%;
+            touch-action: pan-y;
+        }
+        .flipper {
+            display: grid;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+            width: 100%;
+        }
+        .flip-container.flipped .flipper {
+            transform: rotateY(180deg);
+        }
+        .front, .back {
+            grid-area: 1 / 1;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .back {
+            transform: rotateY(180deg);
+        }
+
         /* Carousel Animations */
         .slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         .slide-in-left { animation: slideInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -294,7 +318,13 @@
                 <button id="car-prev" class="bg-slate-700 hover:bg-slate-600 text-white rounded-full p-4 shadow-lg transition active:scale-95 z-10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </button>
-                <span id="car-counter" class="text-slate-400 font-bold bg-slate-800 px-4 py-2 rounded-full shadow-inner">1 / 30</span>
+                <div class="flex flex-col items-center gap-2">
+                    <span id="car-counter" class="text-slate-400 font-bold bg-slate-800 px-4 py-2 rounded-full shadow-inner">1 / 30</span>
+                    <button id="car-shuffle" class="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full shadow-md transition active:scale-95" title="Картуудыг холих">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> 
+                        Холих
+                    </button>
+                </div>
                 <button id="car-next" class="bg-slate-700 hover:bg-slate-600 text-white rounded-full p-4 shadow-lg transition active:scale-95 z-10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                 </button>
@@ -378,6 +408,7 @@
     <script>
         let toneStarted = false;
         let uiSynth;
+        let speechUnlocked = false; // ШИНЭ: Унших функцийг сэрээсэн эсэх
 
         async function initAudio() {
             try {
@@ -420,12 +451,17 @@
         const unlockAudio = async () => {
             try {
                 await initAudio();
-                // Хөтчийн дууг нээх хоосон дуудлага (iOS Safari-д зориулав)
-                if (typeof window !== 'undefined' && window.speechSynthesis) {
-                    const synth = window.speechSynthesis;
-                    if (synth.getVoices && synth.getVoices().length === 0) {
-                        synth.getVoices();
-                    }
+                // Safari / iOS дээр унтаа горимоос хүчээр сэрээх
+                if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+                    await Tone.context.resume();
+                }
+                
+                // ШИНЭ: Messenger-ийн дотоод хөтөч дээр Speech API-г хүчээр сэрээх (Зөвхөн анхны даралтаар)
+                if (!speechUnlocked && typeof window !== 'undefined' && window.speechSynthesis) {
+                    const silentUtterance = new SpeechSynthesisUtterance('');
+                    silentUtterance.volume = 0; // Чимээгүй сэрээх
+                    window.speechSynthesis.speak(silentUtterance);
+                    speechUnlocked = true;
                 }
             } catch (error) {
                 console.warn("Audio unlock failed", error);
@@ -731,11 +767,21 @@
             document.getElementById('fc-symbol-box').style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
             document.getElementById('fc-border').style.border = `4px solid ${colors[0]}`;
 
-            // Setup speech - Англи бүтэн нэрээр нь унших (Жишээ нь: Hydrogen)
-            speakBtn.onclick = (e) => {
+            // Setup speech - Англи бүтэн нэрээр нь унших (Messenger-т зориулж touchstart нэмэв)
+            const handleSpeak = (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 speakWord(data.en);
             };
+            
+            // Хуучин event-үүдийг цэвэрлэж давхардахаас сэргийлэх
+            speakBtn.onclick = null;
+            speakBtn.removeEventListener('click', handleSpeak);
+            speakBtn.removeEventListener('touchstart', handleSpeak);
+            
+            // Зөвхөн хуруугаар хүрэх болон дарах үед шууд ажиллана
+            speakBtn.addEventListener('click', handleSpeak);
+            speakBtn.addEventListener('touchstart', handleSpeak, {passive: false});
 
             // Show modal with animation
             modal.classList.remove('hidden');
@@ -883,34 +929,47 @@
             const bgGradient = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
             
             return `
-            <div class="rounded-[1.5rem] p-6 bg-slate-800 relative overflow-hidden flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 w-full" style="border-color: ${colors[0]}">
-                <button id="carousel-speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-900 rounded-full p-2 shadow-lg hover:scale-110 transition z-50 cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                </button>
-                <div class="w-32 h-32 rounded-2xl flex flex-col items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] mt-4" style="background: ${bgGradient}">
-                    <div class="text-sm font-bold opacity-80 -mt-2 mb-1">${data.n}</div>
-                    <div class="text-6xl font-black">${data.sym}</div>
-                    <div class="text-xs opacity-75 mt-1">${data.mass}</div>
-                </div>
-                <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-1">${data.mn}</h2>
-                <h3 class="text-slate-400 text-lg md:text-xl mb-4 italic">${data.en}</h3>
-                
-                <div class="grid grid-cols-2 gap-4 w-full mb-6 text-sm">
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <span class="block text-slate-400 text-xs uppercase mb-1">Ангилал</span>
-                        <span class="font-bold text-white">${catMap[data.cat] || data.cat}</span>
+            <div class="flip-container cursor-pointer w-full group" onclick="if(!window.isSwiping) { this.classList.toggle('flipped'); playSfx('click'); }">
+                <div class="flipper w-full">
+                    
+                    <!-- ХУУДАСНЫ НҮҮР (FRONT) -->
+                    <div class="front rounded-[1.5rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 flex flex-col items-center justify-center min-h-[400px]" style="border-color: ${colors[0]}; background: ${bgGradient}">
+                        <div class="text-3xl font-bold opacity-80 mb-2">${data.n}</div>
+                        <div class="text-8xl font-black drop-shadow-lg text-white mb-4">${data.sym}</div>
+                        <div class="mt-4 text-white/90 text-sm font-bold bg-black/30 px-5 py-2 rounded-full flex items-center gap-2">
+                            Дарж эргүүлэх 🔄
+                        </div>
                     </div>
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <span class="block text-slate-400 text-xs uppercase mb-1">Төлөв</span>
-                        <span class="font-bold text-white">${data.phase}</span>
+
+                    <!-- ХУУДАСНЫ АР ТАЛ (BACK) -->
+                    <div class="back rounded-[1.5rem] p-6 bg-slate-800 relative flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 w-full min-h-[400px]" style="border-color: ${colors[0]}">
+                        <button id="carousel-speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-900 rounded-full p-2 shadow-lg hover:scale-110 transition z-50 cursor-pointer" onclick="event.stopPropagation();">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                        
+                        <div class="w-20 h-20 rounded-2xl flex flex-col items-center justify-center mb-4 shadow-lg mt-2" style="background: ${bgGradient}">
+                            <div class="text-3xl font-black">${data.sym}</div>
+                        </div>
+                        
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-1">${data.mn}</h2>
+                        <h3 class="text-slate-400 text-base md:text-lg mb-4 italic">${data.en}</h3>
+                        
+                        <div class="grid grid-cols-2 gap-2 w-full mb-4 text-xs">
+                            <div class="bg-slate-900 p-2 rounded-xl border border-slate-700">
+                                <span class="block text-slate-400 uppercase mb-1">Ангилал</span>
+                                <span class="font-bold text-white">${catMap[data.cat] || data.cat}</span>
+                            </div>
+                            <div class="bg-slate-900 p-2 rounded-xl border border-slate-700">
+                                <span class="block text-slate-400 uppercase mb-1">Төлөв</span>
+                                <span class="font-bold text-white">${data.phase}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full bg-slate-900/80 p-3 rounded-xl text-left border border-slate-700 flex-grow">
+                            <p class="text-slate-300 text-xs md:text-sm leading-relaxed">${data.fact}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="w-full bg-slate-900/80 p-4 rounded-xl text-left border border-slate-700">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-yellow-400 text-lg">💡</span>
-                        <span class="font-bold text-slate-300">Сонирхолтой баримт:</span>
-                    </div>
-                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">${data.fact}</p>
+
                 </div>
             </div>
             `;
@@ -929,14 +988,16 @@
 
             carouselCardContainer.innerHTML = getCardHTML(data);
             
-            // Дууны товчийг картан дээр шинээр холбож өгөх
+            // Дууны товчийг картан дээр шинээр холбож өгөх (Messenger-т зориулж touchstart нэмэв)
             const carSpeakBtn = document.getElementById('carousel-speak-btn');
             if (carSpeakBtn) {
-                carSpeakBtn.addEventListener('click', (e) => {
+                const handleCarSpeak = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     speakWord(data.en); // Англи бүтэн нэрээр нь унших
-                });
+                };
+                carSpeakBtn.addEventListener('click', handleCarSpeak);
+                carSpeakBtn.addEventListener('touchstart', handleCarSpeak, {passive: false});
             }
         }
 
@@ -956,14 +1017,34 @@
             }
         });
 
+        // Картуудыг санамсаргүйгээр холих товч
+        document.getElementById('car-shuffle').addEventListener('click', () => {
+            playSfx('swipe');
+            // Массивыг холих (Fisher-Yates Shuffle)
+            for (let i = activeElements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [activeElements[i], activeElements[j]] = [activeElements[j], activeElements[i]];
+            }
+            carouselIndex = 0;
+            renderCarouselCard();
+        });
+
         // Утасны дэлгэц дээр Swipe хийх тохиргоо
         carouselCardContainer.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
+            window.isSwiping = false;
+        }, {passive: true});
+
+        carouselCardContainer.addEventListener('touchmove', e => {
+            if(Math.abs(e.changedTouches[0].screenX - touchStartX) > 10) {
+                window.isSwiping = true; // Чирж байгаа бол эргэхийг хориглоно
+            }
         }, {passive: true});
 
         carouselCardContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
+            setTimeout(() => window.isSwiping = false, 100);
         }, {passive: true});
 
         function handleSwipe() {
@@ -991,17 +1072,17 @@
                 const synthObj = window.speechSynthesis;
                 synthObj.cancel(); // stop current
                 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US'; 
+                // ШИНЭ: iOS болон Messenger дээр санах ойноос устгагдаж гацдаг (Garbage collection) алдааг засахын тулд Global хувьсагчид хадгална
+                window.currentUtterance = new SpeechSynthesisUtterance(text);
+                window.currentUtterance.lang = 'en-US'; 
                 
                 const voices = synthObj.getVoices();
                 const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
-                if(enVoice) utterance.voice = enVoice;
+                if(enVoice) window.currentUtterance.voice = enVoice;
                 
-                utterance.rate = 0.9;
+                window.currentUtterance.rate = 0.85; // Утсан дээр тод сонсогдуулахын тулд бага зэрэг удаашруулав
                 
-                // Утсан дээр setTimeout ашиглавал дуугардаггүй/гацдаг тул шууд дуудна (iOS Safari policy)
-                synthObj.speak(utterance);
+                synthObj.speak(window.currentUtterance);
             } catch (error) {
                 console.warn("Speech Synthesis blocked:", error);
             }
