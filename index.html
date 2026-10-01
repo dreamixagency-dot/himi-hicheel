@@ -464,7 +464,7 @@
                 
                 // ШИНЭ: Messenger-ийн дотоод хөтөч дээр Speech API-г хүчээр сэрээх (Зөвхөн анхны даралтаар)
                 if (!speechUnlocked && typeof window !== 'undefined' && window.speechSynthesis) {
-                    const silentUtterance = new SpeechSynthesisUtterance('');
+                    const silentUtterance = new SpeechSynthesisUtterance(' '); // ЗАСВАР 1: '' байсныг ' ' болгосон
                     silentUtterance.volume = 0; // Чимээгүй сэрээх
                     window.speechSynthesis.speak(silentUtterance);
                     speechUnlocked = true;
@@ -828,9 +828,18 @@
                 lastSpeakTime = now;
 
                 const synthObj = window.speechSynthesis;
-                synthObj.cancel(); // Өмнө нь уншиж байвал зогсоох
                 
-                // Хамгаалалт 2: Android Messenger-ийн хөтөч дээр Cancel хийсний дараа шууд Speak дуудвал гацдаг тул 50ms хүлээлгэх
+                // ЗАСВАР 2: Samsung гацах алдааг засах (Зөвхөн уншиж байвал л зогсоох)
+                if (synthObj.speaking) {
+                    synthObj.cancel(); 
+                }
+
+                // ЗАСВАР 3: Хөтөч унтаа горимд орсон байвал сэргээх
+                if (synthObj.paused) {
+                    synthObj.resume();
+                }
+                
+                // Android Messenger-ийн хөтөч дээр Cancel/Resume хийсний дараа шууд Speak дуудвал гацдаг тул 50ms хүлээлгэх
                 setTimeout(() => {
                     window.currentUtterance = new SpeechSynthesisUtterance(text);
                     window.currentUtterance.lang = 'en-US'; 
@@ -840,7 +849,10 @@
                     
                     const voices = synthObj.getVoices();
                     if (voices && voices.length > 0) {
-                        const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
+                        // Google-ийн хоолойг түрүүлж хайх (Android дээр илүү найдвартай байдаг)
+                        const enVoice = voices.find(v => v.name.includes('Google') && (v.lang.includes('en-US') || v.lang.includes('en_US'))) 
+                                     || voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) 
+                                     || voices.find(v => v.lang.includes('en'));
                         if(enVoice) window.currentUtterance.voice = enVoice;
                     }
                     
