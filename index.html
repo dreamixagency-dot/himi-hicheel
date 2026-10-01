@@ -23,7 +23,7 @@
             /* Гар утсан дээр элементүүд хумигдаж алга болохоос сэргийлж хүчээр өргөнийг барих */
             grid-template-columns: repeat(18, minmax(45px, 1fr)); 
             gap: 4px;
-            width: max-content; /* Хамгийн чухал: Хүснэгтийг дэлгэцэнд баригдуулахгүй томруулна */
+            width: max-content; 
             margin: 0 auto;
             padding: 20px;
             overflow-x: visible;
@@ -83,22 +83,22 @@
         }
 
         /* Color Categories */
-        .alkali-metal { background: linear-gradient(135deg, #ef4444, #b91c1c); } /* Red */
-        .alkaline-earth { background: linear-gradient(135deg, #f97316, #c2410c); } /* Orange */
-        .transition-metal { background: linear-gradient(135deg, #eab308, #a16207); } /* Yellow */
-        .post-transition { background: linear-gradient(135deg, #22c55e, #15803d); } /* Green */
-        .metalloid { background: linear-gradient(135deg, #14b8a6, #0f766e); } /* Teal */
-        .nonmetal { background: linear-gradient(135deg, #3b82f6, #1d4ed8); } /* Blue */
-        .halogen { background: linear-gradient(135deg, #a855f7, #7e22ce); } /* Purple */
-        .noble-gas { background: linear-gradient(135deg, #ec4899, #be185d); } /* Pink */
-        .lanthanide { background: linear-gradient(135deg, #6366f1, #4338ca); } /* Indigo */
-        .actinide { background: linear-gradient(135deg, #8b5cf6, #6d28d9); } /* Violet */
-        .unknown { background: linear-gradient(135deg, #64748b, #334155); } /* Slate */
+        .alkali-metal { background: linear-gradient(135deg, #ef4444, #b91c1c); } 
+        .alkaline-earth { background: linear-gradient(135deg, #f97316, #c2410c); } 
+        .transition-metal { background: linear-gradient(135deg, #eab308, #a16207); } 
+        .post-transition { background: linear-gradient(135deg, #22c55e, #15803d); } 
+        .metalloid { background: linear-gradient(135deg, #14b8a6, #0f766e); } 
+        .nonmetal { background: linear-gradient(135deg, #3b82f6, #1d4ed8); } 
+        .halogen { background: linear-gradient(135deg, #a855f7, #7e22ce); } 
+        .noble-gas { background: linear-gradient(135deg, #ec4899, #be185d); } 
+        .lanthanide { background: linear-gradient(135deg, #6366f1, #4338ca); } 
+        .actinide { background: linear-gradient(135deg, #8b5cf6, #6d28d9); } 
+        .unknown { background: linear-gradient(135deg, #64748b, #334155); } 
 
         /* Quiz Mode Styles */
         .quiz-active .element {
             opacity: 0.6;
-            background: #1e293b !important; /* Muted background */
+            background: #1e293b !important; 
             border-color: #334155;
         }
         .quiz-active .element:hover {
@@ -108,7 +108,7 @@
             z-index: 20;
         }
         
-        /* Шалгалтын үед үсэг болон нэрийг нууж, ? тэмдэг гаргах (Жинхэнэ Memory Game) */
+        /* Шалгалтын үед үсэг болон нэрийг нууж, ? тэмдэг гаргах */
         .quiz-active .element:not(.quiz-correct):not(.reveal-wrong) .symbol,
         .quiz-active .element:not(.quiz-correct):not(.reveal-wrong) .name-mn {
             opacity: 0 !important;
@@ -146,7 +146,7 @@
             filter: grayscale(100%);
         }
 
-        /* Flashcard Flip Styles (ШИНЭ) */
+        /* Flashcard Flip Styles */
         .flip-container {
             perspective: 1000px;
             width: 100%;
@@ -213,13 +213,13 @@
 
         @media (max-width: 768px) {
             .periodic-table { 
-                grid-template-columns: repeat(18, minmax(35px, 1fr)); /* Утсан дээр баталгаатай харагдах хэмжээ */
+                grid-template-columns: repeat(18, minmax(35px, 1fr)); 
                 gap: 2px; 
                 padding: 10px; 
             }
             .element .symbol { font-size: 0.8rem; }
             .element .number { font-size: 0.4rem; }
-            .element .name-mn { display: none; } /* Hide names on very small screens */
+            .element .name-mn { display: none; } 
             .element { min-width: 35px; min-height: 35px; border-radius: 4px; }
         }
     </style>
@@ -269,7 +269,7 @@
 
     <main class="flex-grow flex flex-col items-center justify-start w-full relative p-2">
         
-        <!-- Quiz UI Panel -->
+        <!-- Quiz UI Panel (Snake Game) -->
         <div id="quiz-ui" class="hidden w-full max-w-2xl mx-auto my-4 bg-slate-800 rounded-2xl p-4 border-2 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] text-center flex flex-col items-center">
             <div class="flex justify-between items-center mb-2 w-full px-4">
                 <div class="text-lg font-bold text-slate-300">Оноо: <span id="quiz-score" class="text-green-400 text-2xl">0</span></div>
@@ -286,7 +286,7 @@
             
             <!-- Snake Game Canvas Container -->
             <div id="snake-container" class="relative hidden w-full max-w-[360px] aspect-square bg-slate-900 border-4 border-slate-700 rounded-xl overflow-hidden mx-auto shadow-inner">
-                <canvas id="snake-canvas" class="w-full h-full block"></canvas>
+                <canvas id="snake-canvas" class="w-full h-full block touch-none"></canvas>
                 <!-- Game Over Overlay -->
                 <div id="snake-game-over" class="absolute inset-0 bg-slate-900/80 flex-col items-center justify-center hidden z-10">
                     <h3 class="text-3xl font-black text-red-500 mb-2">Тоглоом дууслаа!</h3>
@@ -304,11 +304,11 @@
                 <div></div>
                 <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="left">⬅️</button>
                 <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="down">⬇️</button>
-                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="right">➡️</button>
+                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="right">➡️️</button>
             </div>
         </div>
 
-        <!-- Flashcard Carousel View (Hidden by default) -->
+        <!-- Flashcard Carousel View -->
         <div id="carousel-view" class="hidden w-full max-w-sm mx-auto mt-6 mb-12 flex-col relative flex-grow">
             <!-- Dynamic Flashcard injected here -->
             <div id="carousel-card-container" class="w-full touch-pan-y will-change-transform"></div>
@@ -321,10 +321,11 @@
                 <div class="flex flex-col items-center gap-2">
                     <span id="car-counter" class="text-slate-400 font-bold bg-slate-800 px-4 py-2 rounded-full shadow-inner">1 / 30</span>
                     <div class="flex items-center gap-2">
-                        <!-- Шинээр нэмэгдсэн Гадна байрлах дууны товч -->
-                        <button id="carousel-speak-btn" class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full shadow-md transition active:scale-95 cursor-pointer" title="Дуудлага сонсох">
+                        <!-- Аудио товч -->
+                        <button id="carousel-speak-btn" class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full shadow-md transition active:scale-95 cursor-pointer" title="Англи дуудлага сонсох">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
                         </button>
+                        <!-- Холих товч -->
                         <button id="car-shuffle" class="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full shadow-md transition active:scale-95" title="Картуудыг холих">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> 
                             Холих
@@ -364,27 +365,21 @@
     <!-- Flashcard Modal -->
     <div id="flashcard-modal" class="fixed inset-0 bg-slate-900/80 z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-slate-800 rounded-3xl p-1 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300" id="flashcard-content">
-            <!-- Inner card with gradient border -->
             <div id="fc-border" class="rounded-[1.3rem] p-6 bg-slate-900 relative overflow-hidden flex flex-col items-center text-center">
-                
-                <!-- Close Button -->
                 <button id="close-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 rounded-full p-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
 
-                <!-- Audio Pronunciation Button -->
-                <button id="speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-800 rounded-full p-2 shadow-lg hover:scale-110 transition">
+                <button id="modal-speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-800 rounded-full p-2 shadow-lg hover:scale-110 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
                 </button>
 
-                <!-- Element Symbol Box -->
                 <div id="fc-symbol-box" class="w-32 h-32 rounded-2xl flex flex-col items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] mt-4">
                     <div id="fc-number" class="text-sm font-bold opacity-80 -mt-2 mb-1">1</div>
                     <div id="fc-symbol" class="text-5xl font-black">H</div>
                     <div id="fc-mass" class="text-xs opacity-75 mt-1">1.008</div>
                 </div>
 
-                <!-- Element Details -->
                 <h2 id="fc-name-mn" class="text-3xl font-extrabold text-white mb-1">Устөрөгч</h2>
                 <h3 id="fc-name-en" class="text-slate-400 text-lg mb-4 italic">Hydrogen</h3>
                 
@@ -394,12 +389,11 @@
                         <span id="fc-category" class="font-bold text-white">Металл биш</span>
                     </div>
                     <div class="bg-slate-800 p-3 rounded-xl">
-                        <span class="block text-slate-400 text-xs uppercase mb-1">Төлөв (Тасалгааны темп)</span>
+                        <span class="block text-slate-400 text-xs uppercase mb-1">Төлөв</span>
                         <span id="fc-phase" class="font-bold text-white">Хий</span>
                     </div>
                 </div>
 
-                <!-- Fun Fact -->
                 <div class="w-full bg-slate-800/50 p-4 rounded-xl text-left border border-slate-700">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="text-yellow-400 text-lg">💡</span>
@@ -412,9 +406,16 @@
     </div>
 
     <script>
+        /* =========================================================================
+           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (SOUND & TTS) - МАШ НАЙДВАРТАЙ ХУВИЛБАР
+           ========================================================================= */
         let toneStarted = false;
         let uiSynth;
-        let speechUnlocked = false; // ШИНЭ: Унших функцийг сэрээсэн эсэх
+        
+        // Англи үг унших глобал хувьсагчид
+        const ttsAudio = new Audio(); 
+        let currentPronunciationText = ""; // Одоо идэвхтэй байгаа үг
+        let isSpeaking = false; // Давхар даралтаас сэргийлэх хаалт
 
         async function initAudio() {
             try {
@@ -424,11 +425,11 @@
                         oscillator: { type: "triangle" },
                         envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }
                     }).toDestination();
-                    uiSynth.volume.value = -12; // Дууны түвшинг тохируулах
+                    uiSynth.volume.value = -12; 
                     toneStarted = true;
                 }
             } catch (error) {
-                console.warn("Audio Context blocked by browser", error);
+                console.warn("Tone.js blocked by browser", error);
             }
         }
 
@@ -453,45 +454,53 @@
             }
         }
 
-        // Дууны системийг идэвхжүүлэх (Touch болон Click хоёуланг нь сонсох)
-        const unlockAudio = async () => {
-            try {
-                await initAudio();
-                // Safari / iOS дээр унтаа горимоос хүчээр сэрээх
-                if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
-                    await Tone.context.resume();
-                }
-                
-                // ШИНЭ: Messenger-ийн дотоод хөтөч дээр Speech API-г хүчээр сэрээх (Зөвхөн анхны даралтаар)
-                if (!speechUnlocked && typeof window !== 'undefined' && window.speechSynthesis) {
-                    const silentUtterance = new SpeechSynthesisUtterance(' '); // ЗАСВАР 1: '' байсныг ' ' болгосон
-                    silentUtterance.volume = 0; // Чимээгүй сэрээх
-                    window.speechSynthesis.speak(silentUtterance);
-                    speechUnlocked = true;
-                }
-            } catch (error) {
-                console.warn("Audio unlock failed", error);
-            }
-        };
-
-        // Утсаар орох үед хамгийн эхний хуруу хүрэлтээр дууг идэвхжүүлнэ
-        document.addEventListener('touchstart', unlockAudio, { passive: true, once: true });
-
-        // Хэрэглэгч анх дэлгэцэнд дарахад дууны системийг идэвхжүүлэх
-        document.addEventListener('click', async (e) => {
-            try { await unlockAudio(); } catch (err) {}
-            const isClickable = e.target.closest('button') || e.target.closest('.element');
+        // 100% Найдвартай Англи хэлээр унших функц (Hybrid: MP3 -> WebSpeech)
+        function speakEnglish(text) {
+            if (!text) return;
+            if (isSpeaking) return; // Давхар даралтыг хаах
             
-            // Дуу уншуулах товчноос бусад үед click effect дуугаргах
-            if (isClickable && !e.target.closest('#carousel-speak-btn') && !e.target.closest('#speak-btn')) {
-                // Swipe болон Quiz-ийн өөрийн дууг давхардуулахгүй байх
+            isSpeaking = true;
+            setTimeout(() => { isSpeaking = false; }, 800); // 0.8 сек дараа дахин дарах эрх нээгдэнэ
+
+            try {
+                // 1. Google Translate MP3 ашиглах (Хамгийн найдвартай, Messenger-т гацахгүй)
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(text)}`;
+                ttsAudio.src = url;
+                ttsAudio.play().catch(err => {
+                    console.warn("MP3 Audio blocked, falling back to Web Speech API:", err);
+                    // 2. Хэрэв MP3 хаагдвал (Offline гэх мэт) утасны өөрийнх рүү шилжих
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utter = new SpeechSynthesisUtterance(text);
+                        utter.lang = 'en-US';
+                        utter.rate = 0.9;
+                        window.speechSynthesis.speak(utter);
+                    }
+                });
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        // Анхны даралтаар Audio Context-ийг асаах
+        document.addEventListener('pointerdown', async () => {
+            if (!toneStarted) await initAudio();
+        }, { once: true, passive: true });
+
+        // Энгийн товчнуудын click sound
+        document.addEventListener('click', (e) => {
+            const isClickable = e.target.closest('button') || e.target.closest('.element');
+            // Дууны товч биш бол click чимээ гаргана
+            if (isClickable && !e.target.closest('#carousel-speak-btn') && !e.target.closest('#modal-speak-btn')) {
                 if(e.target.closest('#car-prev') || e.target.closest('#car-next')) return;
                 if (typeof isQuizPlaying !== 'undefined' && isQuizPlaying && e.target.closest('.element')) return;
-
                 playSfx('click');
             }
         });
 
+        /* =========================================================================
+           2. ХИМИЙН ЭЛЕМЕНТҮҮДИЙН МЭДЭЭЛЭЛ (1-118)
+           ========================================================================= */
         const elementsData = [
             // Period 1
             { n: 1, sym: "H", mn: "Устөрөгч", en: "Hydrogen", mass: "1.008", cat: "nonmetal", phase: "Хий", g: 1, p: 1, fact: "Орчлон ертөнцийн массын 75%-ийг бүрдүүлдэг хамгийн хөнгөн элемент. Усны (H2O) гол бүрэлдэхүүн хэсэг." },
@@ -560,7 +569,7 @@
             // Period 6
             { n: 55, sym: "Cs", mn: "Цези", en: "Caesium", mass: "132.91", cat: "alkali-metal", phase: "Хатуу", g: 1, p: 6, fact: "Атомын цаг хийхэд голчлон ашигладаг маш зөөлөн, идэвхтэй металл." },
             { n: 56, sym: "Ba", mn: "Бари", en: "Barium", mass: "137.33", cat: "alkaline-earth", phase: "Хатуу", g: 2, p: 6, fact: "Салютанд ногоон өнгө гаргахад болон ходоодны рентген зураг авахад ашигладаг." },
-            // Lanthanides (57-71) - mapped to special row 8
+            // Lanthanides (57-71)
             { n: 57, sym: "La", mn: "Лантан", en: "Lanthanum", mass: "138.91", cat: "lanthanide", phase: "Хатуу", g: 3, p: 8, fact: "Эрлийз машины батерей болон камерын дурангийн шилэнд ашигладаг." },
             { n: 58, sym: "Ce", mn: "Цери", en: "Cerium", mass: "140.12", cat: "lanthanide", phase: "Хатуу", g: 4, p: 8, fact: "Асаагуурын (зажигалка) оч гаргагч чулууны үндсэн найрлага." },
             { n: 59, sym: "Pr", mn: "Празеодим", en: "Praseodymium", mass: "140.91", cat: "lanthanide", phase: "Хатуу", g: 5, p: 8, fact: "Гагнуурчны нүдний шилний тусгай хамгаалалттай шилийг хийхэд ордог." },
@@ -598,7 +607,7 @@
             { n: 87, sym: "Fr", mn: "Франци", en: "Francium", mass: "(223)", cat: "alkali-metal", phase: "Хатуу", g: 1, p: 7, fact: "Хамгийн идэвхтэй шүлттэг металл боловч маш ховор, хурдан задарч алга болдог." },
             { n: 88, sym: "Ra", mn: "Ради", en: "Radium", mass: "(226)", cat: "alkaline-earth", phase: "Хатуу", g: 2, p: 7, fact: "Харанхуйд гэрэлтдэг цацраг идэвхт элемент. Эрт үед цагны зүүнд түрхдэг байсан." },
             
-            // Actinides (89-103) - mapped to special row 9
+            // Actinides (89-103)
             { n: 89, sym: "Ac", mn: "Актини", en: "Actinium", mass: "(227)", cat: "actinide", phase: "Хатуу", g: 3, p: 9, fact: "Харанхуйд цэнхэрлэг өнгөөр гэрэлтдэг өндөр цацраг идэвхт элемент." },
             { n: 90, sym: "Th", mn: "Тори", en: "Thorium", mass: "232.04", cat: "actinide", phase: "Хатуу", g: 4, p: 9, fact: "Ирээдүйд цөмийн эрчим хүчний аюулгүй түлш болох боломжтой элемент." },
             { n: 91, sym: "Pa", mn: "Протактини", en: "Protactinium", mass: "231.04", cat: "actinide", phase: "Хатуу", g: 5, p: 9, fact: "Цацраг идэвхт чанар өндөртэй маш ховор элемент." },
@@ -633,40 +642,33 @@
             { n: 118, sym: "Og", mn: "Оганесон", en: "Oganesson", mass: "(294)", cat: "unknown", phase: "Тодорхойгүй", g: 18, p: 7, fact: "Оросын цөмийн физикч Юрий Оганесяны нэрээр нэрлэгдсэн хамгийн хүнд элемент." }
         ];
 
-        let currentMode = 'grid'; // 'grid', 'cards', 'quiz'
+        /* =========================================================================
+           3. UI БОЛОН ҮНДСЭН ТОХИРГООНУУД
+           ========================================================================= */
+        let currentMode = 'grid'; 
         let quizPool = [];
         let currentQuizElement = null;
         let score = 0;
         let lives = 3;
-        const synth = (typeof window !== 'undefined' && window.speechSynthesis) ? window.speechSynthesis : null;
 
-        // Data Pools for Difficulty
         const EASY_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 47, 50, 53, 78, 79, 80, 82, 92];
         const MEDIUM_IDS = [...EASY_IDS, 21, 22, 23, 31, 32, 33, 34, 35, 36, 37, 38, 40, 42, 46, 48, 51, 54, 55, 56, 74, 83, 86];
         let activeElements = []; 
         let carouselIndex = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
         let currentDifficulty = 'easy';
 
         const tableContainer = document.getElementById('periodic-table');
 
         function generateGrid() {
             tableContainer.innerHTML = '';
-            
-            // Generate the main table (Periods 1-7)
             for (let row = 1; row <= 9; row++) {
-                
-                // Add a visual gap before Lanthanides (row 8)
                 if (row === 8) {
                     const gapDiv = document.createElement('div');
                     gapDiv.className = 'bottom-series-gap';
                     tableContainer.appendChild(gapDiv);
                 }
-
                 for (let col = 1; col <= 18; col++) {
                     const elData = elementsData.find(e => e.p === row && e.g === col);
-                    
                     if (elData) {
                         const elDiv = document.createElement('div');
                         elDiv.className = `element ${elData.cat}`;
@@ -677,17 +679,12 @@
                             <span class="symbol">${elData.sym}</span>
                             <span class="name-mn">${elData.mn}</span>
                         `;
-                        
-                        // Хэрэв сонгосон түвшинд багтаагүй элемент бол бүдгэрүүлнэ
                         const isActive = activeElements.length === 0 || activeElements.some(e => e.n === elData.n);
-                        if (!isActive) {
-                            elDiv.classList.add('inactive');
-                        }
+                        if (!isActive) elDiv.classList.add('inactive');
 
                         elDiv.addEventListener('click', () => handleElementClick(elData, elDiv));
                         tableContainer.appendChild(elDiv);
                     } else {
-                        // Handle placeholders for Lanthanide and Actinide series in the main body
                         if (row === 6 && col === 3) {
                             const placeholder = document.createElement('div');
                             placeholder.className = 'element lanthanide opacity-50 cursor-default hover:scale-100 hover:shadow-none';
@@ -699,12 +696,11 @@
                             placeholder.innerHTML = `<span class="number">89-103</span><span class="symbol" style="font-size:0.8rem">Ac-Lr</span>`;
                             tableContainer.appendChild(placeholder);
                         } else {
-                            // Check if we need to insert empty spaces for grid layout
                             const isEmptySpace = (row === 1 && col > 1 && col < 18) || 
                                                  (row === 2 && col > 2 && col < 13) ||
                                                  (row === 3 && col > 2 && col < 13) ||
-                                                 (row === 8 && (col < 3 || col > 17)) || // Padding for Lanthanides row
-                                                 (row === 9 && (col < 3 || col > 17));   // Padding for Actinides row
+                                                 (row === 8 && (col < 3 || col > 17)) || 
+                                                 (row === 9 && (col < 3 || col > 17));   
                             
                             if(isEmptySpace) {
                                  const emptyDiv = document.createElement('div');
@@ -720,138 +716,71 @@
         const modal = document.getElementById('flashcard-modal');
         const modalContent = document.getElementById('flashcard-content');
         const closeBtn = document.getElementById('close-modal');
-        const speakBtn = document.getElementById('speak-btn');
 
         function getCategoryColor(cat) {
             const colors = {
-                'alkali-metal': ['#ef4444', '#b91c1c'],
-                'alkaline-earth': ['#f97316', '#c2410c'],
-                'transition-metal': ['#eab308', '#a16207'],
-                'post-transition': ['#22c55e', '#15803d'],
-                'metalloid': ['#14b8a6', '#0f766e'],
-                'nonmetal': ['#3b82f6', '#1d4ed8'],
-                'halogen': ['#a855f7', '#7e22ce'],
-                'noble-gas': ['#ec4899', '#be185d'],
-                'lanthanide': ['#6366f1', '#4338ca'],
-                'actinide': ['#8b5cf6', '#6d28d9'],
+                'alkali-metal': ['#ef4444', '#b91c1c'], 'alkaline-earth': ['#f97316', '#c2410c'],
+                'transition-metal': ['#eab308', '#a16207'], 'post-transition': ['#22c55e', '#15803d'],
+                'metalloid': ['#14b8a6', '#0f766e'], 'nonmetal': ['#3b82f6', '#1d4ed8'],
+                'halogen': ['#a855f7', '#7e22ce'], 'noble-gas': ['#ec4899', '#be185d'],
+                'lanthanide': ['#6366f1', '#4338ca'], 'actinide': ['#8b5cf6', '#6d28d9'],
                 'unknown': ['#64748b', '#334155']
             };
             return colors[cat] || ['#64748b', '#334155'];
         }
 
-        function handleElementClick(data, elementNode) {
-            if (elementNode.classList.contains('inactive')) return; // Саарал элемент дээр дарагдахгүй
+        const catMap = {
+            'alkali-metal': 'Шүлттэг металл', 'alkaline-earth': 'Шүлттэг газрын металл',
+            'transition-metal': 'Шилжилтийн металл', 'post-transition': 'Бусад металл',
+            'metalloid': 'Металлоид', 'nonmetal': 'Металл биш',
+            'halogen': 'Галоген', 'noble-gas': 'Инерт хий',
+            'lanthanide': 'Лантаноид', 'actinide': 'Актиноид',
+            'unknown': 'Тодорхойгүй'
+        };
 
-            if (currentMode === 'grid') {
-                showFlashcard(data);
-            }
+        function handleElementClick(data, elementNode) {
+            if (elementNode.classList.contains('inactive')) return;
+            if (currentMode === 'grid') showFlashcard(data);
         }
 
         function showFlashcard(data) {
-            // Populate data
             document.getElementById('fc-number').textContent = data.n;
             document.getElementById('fc-symbol').textContent = data.sym;
             document.getElementById('fc-mass').textContent = data.mass;
             document.getElementById('fc-name-mn').textContent = data.mn;
             document.getElementById('fc-name-en').textContent = data.en;
             document.getElementById('fc-fact').textContent = data.fact;
-            
-            // Map category names to Mongolian
-            const catMap = {
-                'alkali-metal': 'Шүлттэг металл', 'alkaline-earth': 'Шүлттэг газрын металл',
-                'transition-metal': 'Шилжилтийн металл', 'post-transition': 'Бусад металл',
-                'metalloid': 'Металлоид', 'nonmetal': 'Металл биш',
-                'halogen': 'Галоген', 'noble-gas': 'Инерт хий',
-                'lanthanide': 'Лантаноид', 'actinide': 'Актиноид',
-                'unknown': 'Тодорхойгүй'
-            };
             document.getElementById('fc-category').textContent = catMap[data.cat] || data.cat;
             document.getElementById('fc-phase').textContent = data.phase;
 
-            // Set colors based on category
             const colors = getCategoryColor(data.cat);
             document.getElementById('fc-symbol-box').style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
             document.getElementById('fc-border').style.border = `4px solid ${colors[0]}`;
 
-            // Setup speech - Англи бүтэн нэрээр нь унших (Messenger-т зориулж touchstart нэмэв)
-            const handleSpeak = (e) => {
-                if (e.cancelable) e.preventDefault();
-                e.stopPropagation();
-                speakWord(data.en);
-            };
-            
-            // ЗАСВАР: Хуучин командууд давхардаж утас гацаахаас сэргийлж зөвхөн ганц үйлдэл үлдээх
-            speakBtn.onclick = handleSpeak;
-            speakBtn.ontouchstart = handleSpeak;
+            // Унших текстийг глобал хувьсагчид хадгална (Давхардахаас сэргийлж)
+            currentPronunciationText = data.en;
 
-            // Show modal with animation
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95');
                 modalContent.classList.add('scale-100');
             }, 10);
-            
-            // Жич: Хөтчийн auto-play хоригоос сэргийлж автоматаар дуугарахыг устгасан
         }
 
         function closeModal() {
             modal.classList.add('opacity-0');
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-            try { if (synth && synth.cancel) synth.cancel(); } catch (e) {}
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-        window.lastSpeakTime = 0;
-        const backupSynthAudio = new Audio(); // MP3 тоглуулагч
-
-        function speakWord(text) {
-            const now = Date.now();
-            if (now - window.lastSpeakTime < 600) return; // Давхар даралтаас хамгаалах
-            window.lastSpeakTime = now;
-
-            // 1. Хамгийн найдвартай арга: MP3 (Google TTS) ашиглах
-            try {
-                backupSynthAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(text)}`;
-                backupSynthAudio.play().catch(e => {
-                    // Хэрвээ MP3 ажиллахгүй бол (интернэтгүй үед) утасны өөрийнхийг ашиглах
-                    playLocalTTS(text);
-                });
-            } catch (error) {
-                playLocalTTS(text);
-            }
-        }
-
-        function playLocalTTS(text) {
-            if (typeof window === 'undefined' || !window.speechSynthesis) return;
-            try {
-                const synth = window.speechSynthesis;
-                if (synth.speaking || synth.pending) synth.cancel();
-
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.9;
-                
-                const voices = synth.getVoices();
-                const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en'));
-                if (enVoice) utterance.voice = enVoice;
-
-                synth.speak(utterance);
-                if (synth.paused) synth.resume();
-            } catch (e) { console.warn("Local TTS error", e); }
-        }
-
-        /* -----------------------------------------
-           ШИНЭ: ЦЭС БОЛОН УДИРДЛАГЫН ХЭСЭГ
-        ----------------------------------------- */
+        /* =========================================================================
+           4. ЦЭС БОЛОН CAROUSEL
+           ========================================================================= */
         const btnMenu = document.getElementById('btn-menu');
         const modeGridBtn = document.getElementById('mode-grid');
         const modeCardsBtn = document.getElementById('mode-cards');
@@ -865,23 +794,18 @@
         const carouselCardContainer = document.getElementById('carousel-card-container');
         
         const startQuizBtn = document.getElementById('start-quiz-btn');
-        const quizTargetName = document.getElementById('quiz-target-name');
-        const quizFeedback = document.getElementById('quiz-feedback');
-        const scoreEl = document.getElementById('quiz-score');
-        const livesEl = document.getElementById('quiz-lives');
         let isQuizPlaying = false;
 
-        // Түвшин сонгох
         function selectDifficulty(diff) {
             currentDifficulty = diff;
             if (diff === 'easy') activeElements = elementsData.filter(e => EASY_IDS.includes(e.n));
             else if (diff === 'medium') activeElements = elementsData.filter(e => MEDIUM_IDS.includes(e.n));
-            else activeElements = [...elementsData]; // Бүгд
+            else activeElements = [...elementsData];
 
             startMenu.classList.add('opacity-0', 'pointer-events-none');
             setTimeout(() => startMenu.classList.add('hidden'), 500);
             
-            generateGrid(); // Хүснэгтийг шинэчилж саарал болгох
+            generateGrid(); 
             switchMode('grid');
         }
 
@@ -897,23 +821,19 @@
 
         function switchMode(mode) {
             currentMode = mode;
-            
-            // Товчнуудын өнгийг буцаах
             [modeGridBtn, modeCardsBtn, modeQuizBtn].forEach(btn => {
                 btn.classList.replace('bg-blue-600', 'bg-transparent');
                 btn.classList.replace('text-white', 'text-slate-400');
             });
 
-            // Бүх дэлгэцийг нуух
             quizUi.classList.add('hidden');
             tableWrapper.classList.add('hidden');
             legendWrapper.classList.add('hidden');
             carouselView.classList.add('hidden');
             tableContainer.classList.remove('quiz-active');
             isQuizPlaying = false;
-            try { if (synth && synth.cancel) synth.cancel(); } catch (e) {}
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-            // Сонгосон дэлгэцийг гаргах
             if (mode === 'grid') {
                 modeGridBtn.classList.replace('bg-transparent', 'bg-blue-600');
                 modeGridBtn.classList.replace('text-slate-400', 'text-white');
@@ -929,32 +849,17 @@
                 modeQuizBtn.classList.replace('bg-transparent', 'bg-blue-600');
                 modeQuizBtn.classList.replace('text-slate-400', 'text-white');
                 quizUi.classList.remove('hidden');
-                tableWrapper.classList.remove('hidden');
-                tableContainer.classList.add('quiz-active');
                 resetQuizUI();
             }
         }
 
-        /* -----------------------------------------
-           ШИНЭ: CAROUSEL (FLASHCARD) ГОРИМ
-        ----------------------------------------- */
         function getCardHTML(data) {
-            const catMap = {
-                'alkali-metal': 'Шүлттэг металл', 'alkaline-earth': 'Шүлттэг газрын металл',
-                'transition-metal': 'Шилжилтийн металл', 'post-transition': 'Бусад металл',
-                'metalloid': 'Металлоид', 'nonmetal': 'Металл биш',
-                'halogen': 'Галоген', 'noble-gas': 'Инерт хий',
-                'lanthanide': 'Лантаноид', 'actinide': 'Актиноид',
-                'unknown': 'Тодорхойгүй'
-            };
             const colors = getCategoryColor(data.cat);
             const bgGradient = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
             
             return `
             <div class="flip-container cursor-pointer w-full group" onclick="if(!window.isSwiping) { this.classList.toggle('flipped'); playSfx('click'); }">
                 <div class="flipper w-full">
-                    
-                    <!-- ХУУДАСНЫ НҮҮР (FRONT) -->
                     <div class="front rounded-[1.5rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 flex flex-col items-center justify-center min-h-[400px]" style="border-color: ${colors[0]}; background: ${bgGradient}">
                         <div class="text-3xl font-bold opacity-80 mb-2">${data.n}</div>
                         <div class="text-8xl font-black drop-shadow-lg text-white mb-4">${data.sym}</div>
@@ -962,17 +867,12 @@
                             Дарж эргүүлэх 🔄
                         </div>
                     </div>
-
-                    <!-- ХУУДАСНЫ АР ТАЛ (BACK) -->
                     <div class="back rounded-[1.5rem] p-6 bg-slate-800 relative flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 w-full min-h-[400px]" style="border-color: ${colors[0]}">
-                        
                         <div class="w-20 h-20 rounded-2xl flex flex-col items-center justify-center mb-4 shadow-lg mt-2" style="background: ${bgGradient}">
                             <div class="text-3xl font-black">${data.sym}</div>
                         </div>
-                        
                         <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-1">${data.mn}</h2>
                         <h3 class="text-slate-400 text-base md:text-lg mb-4 italic">${data.en}</h3>
-                        
                         <div class="grid grid-cols-2 gap-2 w-full mb-4 text-xs">
                             <div class="bg-slate-900 p-2 rounded-xl border border-slate-700">
                                 <span class="block text-slate-400 uppercase mb-1">Ангилал</span>
@@ -983,12 +883,10 @@
                                 <span class="font-bold text-white">${data.phase}</span>
                             </div>
                         </div>
-                        
                         <div class="w-full bg-slate-900/80 p-3 rounded-xl text-left border border-slate-700 flex-grow">
                             <p class="text-slate-300 text-xs md:text-sm leading-relaxed">${data.fact}</p>
                         </div>
                     </div>
-
                 </div>
             </div>
             `;
@@ -999,12 +897,13 @@
             const data = activeElements[carouselIndex];
             document.getElementById('car-counter').textContent = `${carouselIndex + 1} / ${activeElements.length}`;
             
-            // Хуудас эргэх анимейшн
+            // Унших текстийг глобал хувьсагчид хадгална
+            currentPronunciationText = data.en;
+            
             carouselCardContainer.classList.remove('slide-in-right', 'slide-in-left');
-            void carouselCardContainer.offsetWidth; // Анимейшн хүчээр дахин эхлүүлэх
+            void carouselCardContainer.offsetWidth; 
             if (direction === 'next') carouselCardContainer.classList.add('slide-in-right');
             if (direction === 'prev') carouselCardContainer.classList.add('slide-in-left');
-
             carouselCardContainer.innerHTML = getCardHTML(data);
         }
 
@@ -1024,10 +923,8 @@
             }
         });
 
-        // Картуудыг санамсаргүйгээр холих товч
         document.getElementById('car-shuffle').addEventListener('click', () => {
             playSfx('swipe');
-            // Массивыг холих (Fisher-Yates Shuffle)
             for (let i = activeElements.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [activeElements[i], activeElements[j]] = [activeElements[j], activeElements[i]];
@@ -1036,69 +933,56 @@
             renderCarouselCard();
         });
 
-        // Картын гадна байрлах дууны товчийг ажиллуулах
-        const carSpeakBtn = document.getElementById('carousel-speak-btn');
-        if (carSpeakBtn) {
-            const handleCarSpeak = (e) => {
-                if(e.cancelable) e.preventDefault();
-                e.stopPropagation();
-                if (activeElements.length > 0) {
-                    const data = activeElements[carouselIndex];
-                    speakWord(data.en);
-                }
-            };
-            // ЗАСВАР: Давхардаж ажиллахаас сэргийлсэн
-            carSpeakBtn.onclick = handleCarSpeak;
-            carSpeakBtn.ontouchstart = handleCarSpeak;
-        }
-
-        // Утасны дэлгэц дээр Swipe хийх тохиргоо
+        // Swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
         carouselCardContainer.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
             window.isSwiping = false;
         }, {passive: true});
 
         carouselCardContainer.addEventListener('touchmove', e => {
-            if(Math.abs(e.changedTouches[0].screenX - touchStartX) > 10) {
-                window.isSwiping = true; // Чирж байгаа бол эргэхийг хориглоно
-            }
+            if(Math.abs(e.changedTouches[0].screenX - touchStartX) > 10) window.isSwiping = true; 
         }, {passive: true});
 
         carouselCardContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            const threshold = 60; 
+            if (touchEndX < touchStartX - threshold && carouselIndex < activeElements.length - 1) {
+                playSfx('swipe'); carouselIndex++; renderCarouselCard('next');
+            } else if (touchEndX > touchStartX + threshold && carouselIndex > 0) {
+                playSfx('swipe'); carouselIndex--; renderCarouselCard('prev');
+            }
             setTimeout(() => window.isSwiping = false, 100);
         }, {passive: true});
 
-        function handleSwipe() {
-            const threshold = 60; // Хуруугаар чирэх хамгийн бага зай
-            if (touchEndX < touchStartX - threshold && carouselIndex < activeElements.length - 1) {
-                // Зүүн тийш чирсэн (Дараагийн)
-                playSfx('swipe');
-                carouselIndex++;
-                renderCarouselCard('next');
-            } else if (touchEndX > touchStartX + threshold && carouselIndex > 0) {
-                // Баруун тийш чирсэн (Өмнөх)
-                playSfx('swipe');
-                carouselIndex--;
-                renderCarouselCard('prev');
+        /* =========================================================================
+           5. АУДИО ТОВЧНУУДЫГ (GLOBAL) ХОЛБОХ
+           ========================================================================= */
+        function triggerAudioGlobal(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (currentPronunciationText) {
+                speakEnglish(currentPronunciationText);
             }
         }
+        document.getElementById('modal-speak-btn').addEventListener('click', triggerAudioGlobal);
+        document.getElementById('carousel-speak-btn').addEventListener('click', triggerAudioGlobal);
 
-        /* -----------------------------------------
-           ШИНЭ: МОГОЙ ТОГЛООМ (SNAKE QUIZ)
-        ----------------------------------------- */
-        
-        // Могой тоглоомын хувьсагчид
+        /* =========================================================================
+           6. МОГОЙ ТОГЛООМ (SNAKE QUIZ)
+           ========================================================================= */
         let snake = [];
         let snakeDir = {x: 1, y: 0};
         let nextSnakeDir = {x: 1, y: 0};
         let foods = [];
         let snakeInterval;
         let canvas, ctx;
-        const cols = 12;
-        const rows = 12;
-        const cellSize = 50; // Canvas дотоод нягтрал (12x50 = 600px)
+        const cols = 12, rows = 12, cellSize = 50; 
+        const quizTargetName = document.getElementById('quiz-target-name');
+        const quizFeedback = document.getElementById('quiz-feedback');
+        const scoreEl = document.getElementById('quiz-score');
+        const livesEl = document.getElementById('quiz-lives');
 
         function resetQuizUI() {
             startQuizBtn.classList.remove('hidden');
@@ -1115,69 +999,51 @@
 
         function startQuiz() {
             isQuizPlaying = true;
-            score = 0;
-            lives = 3;
+            score = 0; lives = 3;
             quizPool = [...activeElements];
-            updateScoreUI();
+            scoreEl.textContent = score;
+            livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
             
             startQuizBtn.classList.add('hidden');
             document.getElementById('snake-container').classList.remove('hidden');
             document.getElementById('snake-game-over').classList.add('hidden');
             document.getElementById('snake-controls').classList.remove('hidden');
             document.getElementById('quiz-question-label').classList.remove('hidden');
-            
             quizTargetName.className = "text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 drop-shadow-md min-h-[40px]";
             
             if(!canvas) {
                 canvas = document.getElementById('snake-canvas');
-                canvas.width = cols * cellSize;
-                canvas.height = rows * cellSize;
+                canvas.width = cols * cellSize; canvas.height = rows * cellSize;
                 ctx = canvas.getContext('2d');
             }
             
             snake = [{x: 5, y: 5}];
-            snakeDir = {x: 1, y: 0};
-            nextSnakeDir = {x: 1, y: 0};
-            
+            snakeDir = {x: 1, y: 0}; nextSnakeDir = {x: 1, y: 0};
             nextQuestion();
-            
             if(snakeInterval) clearInterval(snakeInterval);
-            snakeInterval = setInterval(gameLoop, 250); // Могойн хурд
+            snakeInterval = setInterval(gameLoop, 250); 
         }
 
         function nextQuestion() {
-            if (lives <= 0 || quizPool.length === 0) {
-                endQuiz();
-                return;
-            }
-            
+            if (lives <= 0 || quizPool.length === 0) { endQuiz(); return; }
             quizFeedback.textContent = "";
-            const rIndex = Math.floor(Math.random() * quizPool.length);
-            currentQuizElement = quizPool[rIndex];
+            currentQuizElement = quizPool[Math.floor(Math.random() * quizPool.length)];
             
-            // 0: Англи нэр -> Тэмдэг, 1: Тэмдэг -> Монгол нэр, 2: Монгол нэр -> Тэмдэг
             const qType = Math.floor(Math.random() * 3);
-            let displayQ = "";
-            let correctAns = "";
+            let displayQ = "", correctAns = "";
             
             if (qType === 0) {
                 document.getElementById('quiz-question-label').textContent = "Англи нэртэй элементийг ол:";
-                displayQ = currentQuizElement.en;
-                correctAns = currentQuizElement.sym;
-                speakWord(currentQuizElement.en); 
+                displayQ = currentQuizElement.en; correctAns = currentQuizElement.sym;
             } else if (qType === 1) {
                 document.getElementById('quiz-question-label').textContent = "Энэ тэмдэглэгээтэй элементийг ол:";
-                displayQ = currentQuizElement.sym;
-                correctAns = currentQuizElement.mn;
-                speakWord(currentQuizElement.en); // Үсэглэхгүй, шууд Англи бүтэн нэрээр нь дуудна
+                displayQ = currentQuizElement.sym; correctAns = currentQuizElement.mn;
             } else {
                 document.getElementById('quiz-question-label').textContent = "Монгол нэртэй элементийг ол:";
-                displayQ = currentQuizElement.mn;
-                correctAns = currentQuizElement.sym;
-                speakWord(currentQuizElement.en); // Англи нэрийг нь давхар сонсгож цээжлүүлнэ
+                displayQ = currentQuizElement.mn; correctAns = currentQuizElement.sym;
             }
-            
             quizTargetName.textContent = displayQ;
+            speakEnglish(currentQuizElement.en); // Асуулт гарах үед Англиар унших
             spawnFoods(correctAns, qType);
         }
 
@@ -1186,124 +1052,81 @@
             const safePositions = [];
             for(let x=0; x<cols; x++) {
                 for(let y=0; y<rows; y++) {
-                    if(!snake.some(s => s.x === x && s.y === y)) {
-                        safePositions.push({x, y});
-                    }
+                    if(!snake.some(s => s.x === x && s.y === y)) safePositions.push({x, y});
                 }
             }
-            safePositions.sort(() => Math.random() - 0.5); // Randomly shuffle
+            safePositions.sort(() => Math.random() - 0.5); 
             
-            // 2 ширхэг буруу хариулт сонгох
             let wrongOptions = elementsData.filter(e => e.n !== currentQuizElement.n);
             wrongOptions.sort(() => Math.random() - 0.5);
             
-            const options = [
-                { text: correctText, isCorrect: true }
-            ];
-            
+            const options = [{ text: correctText, isCorrect: true }];
             for(let i=0; i<2; i++) {
-                let text = qType === 1 ? wrongOptions[i].mn : wrongOptions[i].sym;
-                options.push({ text: text, isCorrect: false });
+                options.push({ text: qType === 1 ? wrongOptions[i].mn : wrongOptions[i].sym, isCorrect: false });
             }
-            options.sort(() => Math.random() - 0.5); // Холино
+            options.sort(() => Math.random() - 0.5); 
             
-            const colors = ['#f59e0b', '#8b5cf6', '#10b981']; // Шар, Нил ягаан, Ногоон
-            
+            const colors = ['#f59e0b', '#8b5cf6', '#10b981']; 
             for(let i=0; i<3; i++) {
-                let pos = safePositions[i];
-                foods.push({
-                    x: pos.x,
-                    y: pos.y,
-                    text: options[i].text,
-                    isCorrect: options[i].isCorrect,
-                    color: colors[i]
-                });
+                foods.push({ x: safePositions[i].x, y: safePositions[i].y, text: options[i].text, isCorrect: options[i].isCorrect, color: colors[i] });
             }
         }
 
         function gameLoop() {
             if(!isQuizPlaying) return;
-            
             snakeDir = nextSnakeDir;
             const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
             
-            // Ханаар нэвтрэх
             if(head.x < 0) head.x = cols - 1;
             if(head.x >= cols) head.x = 0;
             if(head.y < 0) head.y = rows - 1;
             if(head.y >= rows) head.y = 0;
             
-            // Өөрийгөө мөргөх
             if(snake.some(s => s.x === head.x && s.y === head.y)) {
-                lives--;
-                playSfx('wrong');
+                lives--; playSfx('wrong');
                 quizFeedback.textContent = "Өөрийгөө мөргөлөө!";
                 quizFeedback.className = "mt-2 text-xl font-bold h-6 text-red-400";
-                updateScoreUI();
+                scoreEl.textContent = score; livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
                 if(lives <= 0) { endQuiz(); return; }
                 else { snake = [{x: 5, y: 5}]; nextQuestion(); return; }
             }
             
             snake.unshift(head);
-            
-            // Хоол идэх шалгалт
             let ateFood = false;
             for(let i=0; i<foods.length; i++) {
                 if(head.x === foods[i].x && head.y === foods[i].y) {
                     ateFood = true;
                     if(foods[i].isCorrect) {
-                        playSfx('correct');
-                        score += 10;
-                        quizFeedback.textContent = "ЗӨВ! 🎉";
-                        quizFeedback.className = "mt-2 text-xl font-bold h-6 text-green-400";
+                        playSfx('correct'); score += 10;
+                        quizFeedback.textContent = "ЗӨВ! 🎉"; quizFeedback.className = "mt-2 text-xl font-bold h-6 text-green-400";
                         quizPool = quizPool.filter(e => e.n !== currentQuizElement.n);
-                        updateScoreUI();
+                        scoreEl.textContent = score; livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
                         setTimeout(nextQuestion, 500);
                     } else {
-                        lives--;
-                        playSfx('wrong');
-                        const correctFood = foods.find(f => f.isCorrect).text;
-                        quizFeedback.textContent = `БУРУУ! Зөв хариу: ${correctFood}`;
+                        lives--; playSfx('wrong');
+                        quizFeedback.textContent = `БУРУУ! Зөв хариу: ${foods.find(f => f.isCorrect).text}`;
                         quizFeedback.className = "mt-2 text-lg md:text-xl font-bold h-6 text-red-400";
-                        updateScoreUI();
-                        snake.pop(); // Буруу идсэн тул уртсахгүй
-                        if(lives <= 0) { endQuiz(); return; }
-                        else { setTimeout(nextQuestion, 1500); }
+                        scoreEl.textContent = score; livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+                        snake.pop(); 
+                        if(lives <= 0) { endQuiz(); return; } else { setTimeout(nextQuestion, 1500); }
                     }
                     break;
                 }
             }
-            
-            if(!ateFood) {
-                snake.pop();
-            }
-            
+            if(!ateFood) snake.pop();
             drawGame();
         }
 
         function drawGame() {
-            // Background
-            ctx.fillStyle = '#0f172a'; // slate-900
+            ctx.fillStyle = '#0f172a'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Foods (Хариултууд)
             foods.forEach(f => {
                 ctx.fillStyle = f.color;
-                ctx.beginPath();
-                ctx.roundRect(f.x * cellSize + 2, f.y * cellSize + 2, cellSize - 4, cellSize - 4, 8);
-                ctx.fill();
-                
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // Текст урт байвал жижигрүүлэх, мөр таслах
-                let fSize = 22;
-                if(f.text.length > 7) fSize = 11;
-                else if (f.text.length > 3) fSize = 14;
-                
+                ctx.beginPath(); ctx.roundRect(f.x * cellSize + 2, f.y * cellSize + 2, cellSize - 4, cellSize - 4, 8); ctx.fill();
+                ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                let fSize = f.text.length > 7 ? 11 : (f.text.length > 3 ? 14 : 22);
                 ctx.font = `bold ${fSize}px Nunito, sans-serif`;
-                
                 if(f.text.includes(' ') && f.text.length > 8) {
                     const parts = f.text.split(' ');
                     ctx.fillText(parts[0], f.x * cellSize + cellSize/2, f.y * cellSize + cellSize/2 - 7);
@@ -1313,29 +1136,15 @@
                 }
             });
             
-            // Snake
             snake.forEach((s, i) => {
-                ctx.fillStyle = i === 0 ? '#4ade80' : '#22c55e'; // Толгой арай цайвар
-                ctx.beginPath();
-                ctx.roundRect(s.x * cellSize + 1, s.y * cellSize + 1, cellSize - 2, cellSize - 2, i === 0 ? 10 : 4);
-                ctx.fill();
-                
-                // Могойн нүд
+                ctx.fillStyle = i === 0 ? '#4ade80' : '#22c55e'; 
+                ctx.beginPath(); ctx.roundRect(s.x * cellSize + 1, s.y * cellSize + 1, cellSize - 2, cellSize - 2, i === 0 ? 10 : 4); ctx.fill();
                 if (i === 0) { 
                     ctx.fillStyle = 'black';
-                    if (snakeDir.x === 1) { // Right
-                        ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 10, 5, 5);
-                        ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 35, 5, 5);
-                    } else if (snakeDir.x === -1) { // Left
-                        ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 10, 5, 5);
-                        ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 35, 5, 5);
-                    } else if (snakeDir.y === 1) { // Down
-                        ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 35, 5, 5);
-                        ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 35, 5, 5);
-                    } else { // Up
-                        ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 10, 5, 5);
-                        ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 10, 5, 5);
-                    }
+                    if (snakeDir.x === 1) { ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 10, 5, 5); ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 35, 5, 5); } 
+                    else if (snakeDir.x === -1) { ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 10, 5, 5); ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 35, 5, 5); } 
+                    else if (snakeDir.y === 1) { ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 35, 5, 5); ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 35, 5, 5); } 
+                    else { ctx.fillRect(s.x*cellSize + 10, s.y*cellSize + 10, 5, 5); ctx.fillRect(s.x*cellSize + 35, s.y*cellSize + 10, 5, 5); }
                 }
             });
         }
@@ -1346,17 +1155,9 @@
             document.getElementById('snake-game-over').classList.remove('hidden');
             document.getElementById('snake-game-over').classList.add('flex');
             document.getElementById('snake-final-score').textContent = `Таны оноо: ${score}`;
-            
-            if (lives <= 0) speakWord("Game over");
-            else speakWord("Congratulations");
+            speakEnglish(lives <= 0 ? "Game over" : "Congratulations");
         }
 
-        function updateScoreUI() {
-            scoreEl.textContent = score;
-            livesEl.textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
-        }
-
-        // Могойн удирдлага (Keyboard & Touch)
         document.addEventListener('keydown', (e) => {
             if(!isQuizPlaying) return;
             switch(e.key) {
@@ -1369,41 +1170,27 @@
         
         document.querySelectorAll('.snake-btn').forEach(btn => {
             const handleMove = (e) => {
-                if (e.cancelable) e.preventDefault(); // Zoom/scroll хийгдэхээс хамгаална
-                const dir = e.currentTarget.dataset.dir; // currentTarget нь яг товчийг барьж авна
+                e.preventDefault(); 
+                const dir = e.currentTarget.dataset.dir; 
                 if(dir === 'up' && snakeDir.y===0) nextSnakeDir = {x: 0, y: -1};
                 if(dir === 'down' && snakeDir.y===0) nextSnakeDir = {x: 0, y: 1};
                 if(dir === 'left' && snakeDir.x===0) nextSnakeDir = {x: -1, y: 0};
                 if(dir === 'right' && snakeDir.x===0) nextSnakeDir = {x: 1, y: 0};
             };
-            
-            // Утасны touch болон компьютерийн хулганын даралтыг 2уланг нь сонсоно
             btn.addEventListener('touchstart', handleMove, {passive: false});
             btn.addEventListener('mousedown', handleMove);
         });
         
         document.getElementById('snake-restart-btn').addEventListener('click', startQuiz);
 
-        // Tone.js Дууны тохиргоо (Sound Effects)
         window.addEventListener('DOMContentLoaded', () => {
-            activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); // Анхны утга
+            activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); 
             generateGrid();
-            
-            try {
-                // Хамгаалалт 3: Android утсанд дуу хоолойнуудыг эртнээс бэлдэж ачааллах
-                if (typeof window !== 'undefined' && window.speechSynthesis) {
-                    window.speechSynthesis.getVoices();
-                    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                        window.speechSynthesis.onvoiceschanged = () => {
-                            window.speechSynthesis.getVoices();
-                        };
-                    }
-                }
-            } catch (error) {
-                console.warn("Speech API bypass error:", error);
+            // Сүүлийн үеийн хөтчүүд WebSpeech API-г ачаалахын тулд
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
             }
         });
-
     </script>
 </body>
 </html>
