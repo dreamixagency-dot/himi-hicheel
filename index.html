@@ -415,6 +415,7 @@
         let toneStarted = false;
         let uiSynth;
         let speechUnlocked = false; // ШИНЭ: Унших функцийг сэрээсэн эсэх
+        const ttsAudio = new Audio(); // 100% НАЙДВАРТАЙ: MP3 аудио тоглуулагч
 
         async function initAudio() {
             try {
@@ -461,6 +462,9 @@
                 if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
                     await Tone.context.resume();
                 }
+                
+                // ШИНЭ: MP3 тоглуулагчийг гар утасны хөтөч дээр сэрээх (Unlock)
+                ttsAudio.load();
                 
                 // ШИНЭ: Messenger-ийн дотоод хөтөч дээр Speech API-г хүчээр сэрээх (Зөвхөн анхны даралтаар)
                 if (!speechUnlocked && typeof window !== 'undefined' && window.speechSynthesis) {
@@ -817,40 +821,57 @@
 
         // ШИНЭ: Samsung S22 болон Android Messenger-ийн давхар даралтыг хаах хувьсагч
         let lastSpeakTime = 0;
+        // let ttsAudio = null; хуучин дахин зарласан хэсгийг устгалаа (Дээд талд const ttsAudio = new Audio() гэж байгаа)
 
         function speakWord(text) {
             try {
-                if (typeof window === 'undefined' || !window.speechSynthesis) return;
-                
-                // Хамгаалалт 1: Утсан дээр Touch болон Click зэрэгцэж ажиллаж дууг тасалдаг тул 400ms дотор давхар дарахыг алгасах
+                // Хамгаалалт 1: Давхар даралтаас сэргийлэх (400ms дотор давхар дарахыг алгасах)
                 const now = Date.now();
                 if (now - lastSpeakTime < 400) return;
                 lastSpeakTime = now;
 
-                const synthObj = window.speechSynthesis;
-                
-                // ЗАСВАР 2: Samsung гацах алдааг засах (Зөвхөн уншиж байвал л зогсоох)
-                if (synthObj.speaking) {
-                    synthObj.cancel(); 
+                // Хамгаалалт 2: Өмнө нь дуугарч байсан бол зогсоох
+                if (ttsAudio) {
+                    ttsAudio.pause();
+                    ttsAudio.currentTime = 0;
+                }
+                if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
                 }
 
-                // ЗАСВАР 3: Хөтөч унтаа горимд орсон байвал сэргээх
-                if (synthObj.paused) {
-                    synthObj.resume();
-                }
+                // АРГА 1: Google Translate TTS API (MP3 дуу хэлбэрээр татаж тоглох - Хамгийн найдвартай)
+                // Энэ нь утасны дотоод TTS гацах асуудлыг 100% тойрч гарна.
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
+                ttsAudio.src = url; // Шинээр үүсгэх биш (new Audio()), эх сурвалжийг нь л солино
                 
-                // Android Messenger-ийн хөтөч дээр Cancel/Resume хийсний дараа шууд Speak дуудвал гацдаг тул 50ms хүлээлгэх
+                ttsAudio.play().catch(err => {
+                    console.warn("MP3 Audio тоглуулахад алдаа гарлаа, нөөц хувилбар руу шилжиж байна:", err);
+                    // АРГА 2: Хэрэв MP3 дуугарч чадахгүй бол утасны өөрийнх нь TTS-ээр уншуулна (Нөөц хувилбар)
+                    fallbackSpeak(text);
+                });
+
+            } catch (error) {
+                console.warn("Speech Synthesis failed:", error);
+                fallbackSpeak(text);
+            }
+        }
+
+        function fallbackSpeak(text) {
+            if (typeof window === 'undefined' || !window.speechSynthesis) return;
+            try {
+                const synthObj = window.speechSynthesis;
+                if (synthObj.paused) synthObj.resume();
+                
+                // Android Messenger-ийн хөтөч дээр Cancel/Resume хийсний дараа шууд Speak дуудвал гацдаг тул бага зэрэг хүлээлгэнэ
                 setTimeout(() => {
                     window.currentUtterance = new SpeechSynthesisUtterance(text);
                     window.currentUtterance.lang = 'en-US'; 
                     window.currentUtterance.volume = 1;
                     window.currentUtterance.rate = 0.85; 
-                    window.currentUtterance.pitch = 1;
                     
                     const voices = synthObj.getVoices();
                     if (voices && voices.length > 0) {
-                        // Google-ийн хоолойг түрүүлж хайх (Android дээр илүү найдвартай байдаг)
-                        const enVoice = voices.find(v => v.name.includes('Google') && (v.lang.includes('en-US') || v.lang.includes('en_US'))) 
+                        const enVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) 
                                      || voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) 
                                      || voices.find(v => v.lang.includes('en'));
                         if(enVoice) window.currentUtterance.voice = enVoice;
@@ -858,10 +879,7 @@
                     
                     synthObj.speak(window.currentUtterance);
                 }, 50);
-
-            } catch (error) {
-                console.warn("Speech Synthesis blocked:", error);
-            }
+            } catch(e) {}
         }
 
         /* -----------------------------------------
