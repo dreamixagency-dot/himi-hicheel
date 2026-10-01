@@ -2,7 +2,7 @@
 <html lang="mn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Химийн Үелэх Систем - Цээжлэх Тоглоом</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -178,6 +178,10 @@
         
         .empty-space { grid-column: span 1; }
 
+        /* Mobile optimizations */
+        .touch-none { touch-action: none; }
+        .no-select { user-select: none; -webkit-user-select: none; }
+
         @media (max-width: 768px) {
             .periodic-table { gap: 2px; padding: 10px; }
             .element .symbol { font-size: 0.8rem; }
@@ -261,13 +265,13 @@
             <p id="quiz-feedback" class="mt-2 text-lg font-bold h-6 transition-all"></p>
 
             <!-- Mobile Controls -->
-            <div id="snake-controls" class="hidden grid grid-cols-3 gap-2 mt-4 max-w-[200px] w-full mx-auto touch-manipulation">
+            <div id="snake-controls" class="hidden grid grid-cols-3 gap-2 mt-4 max-w-[200px] w-full mx-auto touch-none no-select">
                 <div></div>
-                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md" data-dir="up">⬆️</button>
+                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="up">⬆️</button>
                 <div></div>
-                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md" data-dir="left">⬅️</button>
-                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md" data-dir="down">⬇️</button>
-                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md" data-dir="right">➡️</button>
+                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="left">⬅️</button>
+                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="down">⬇️</button>
+                <button class="snake-btn bg-slate-700 hover:bg-slate-600 p-4 rounded-xl text-2xl active:bg-slate-500 shadow-md flex items-center justify-center" data-dir="right">➡️</button>
             </div>
         </div>
 
@@ -395,9 +399,21 @@
             }
         }
 
+        // Дууны системийг идэвхжүүлэх (Touch болон Click хоёуланг нь сонсох)
+        const unlockAudio = async () => {
+            await initAudio();
+            // Хөтчийн дууг нээх хоосон дуудлага (iOS Safari-д зориулав)
+            if (synth && synth.getVoices().length === 0) {
+                synth.getVoices();
+            }
+        };
+
+        // Утсаар орох үед хамгийн эхний хуруу хүрэлтээр дууг идэвхжүүлнэ
+        document.addEventListener('touchstart', unlockAudio, { passive: true, once: true });
+
         // Хэрэглэгч анх дэлгэцэнд дарахад дууны системийг идэвхжүүлэх
         document.addEventListener('click', async (e) => {
-            await initAudio();
+            await unlockAudio();
             const isClickable = e.target.closest('button') || e.target.closest('.element');
             
             // Дуу уншуулах товчноос бусад үед click effect дуугаргах
@@ -958,9 +974,8 @@
             
             utterance.rate = 0.9;
             
-            setTimeout(() => {
-                synth.speak(utterance);
-            }, 50);
+            // Утсан дээр setTimeout ашиглавал дуугардаггүй/гацдаг тул шууд дуудна (iOS Safari policy)
+            synth.speak(utterance);
         }
 
         // Могой тоглоомын хувьсагчид
@@ -1242,22 +1257,18 @@
         });
         
         document.querySelectorAll('.snake-btn').forEach(btn => {
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault(); // Zoom/scroll хийгдэхээс хамгаална
-                const dir = e.target.dataset.dir;
+            const handleMove = (e) => {
+                if (e.cancelable) e.preventDefault(); // Zoom/scroll хийгдэхээс хамгаална
+                const dir = e.currentTarget.dataset.dir; // currentTarget нь яг товчийг барьж авна
                 if(dir === 'up' && snakeDir.y===0) nextSnakeDir = {x: 0, y: -1};
                 if(dir === 'down' && snakeDir.y===0) nextSnakeDir = {x: 0, y: 1};
                 if(dir === 'left' && snakeDir.x===0) nextSnakeDir = {x: -1, y: 0};
                 if(dir === 'right' && snakeDir.x===0) nextSnakeDir = {x: 1, y: 0};
-            });
-            // Хулганаар дарах үед мөн ажиллах
-            btn.addEventListener('click', (e) => {
-                const dir = e.target.dataset.dir;
-                if(dir === 'up' && snakeDir.y===0) nextSnakeDir = {x: 0, y: -1};
-                if(dir === 'down' && snakeDir.y===0) nextSnakeDir = {x: 0, y: 1};
-                if(dir === 'left' && snakeDir.x===0) nextSnakeDir = {x: -1, y: 0};
-                if(dir === 'right' && snakeDir.x===0) nextSnakeDir = {x: 1, y: 0};
-            });
+            };
+            
+            // Утасны touch болон компьютерийн хулганын даралтыг 2уланг нь сонсоно
+            btn.addEventListener('touchstart', handleMove, {passive: false});
+            btn.addEventListener('mousedown', handleMove);
         });
         
         document.getElementById('snake-restart-btn').addEventListener('click', startQuiz);
