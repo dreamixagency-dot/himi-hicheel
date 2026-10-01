@@ -407,15 +407,70 @@
 
     <script>
         /* =========================================================================
-           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (SOUND & TTS) - МАШ НАЙДВАРТАЙ ХУВИЛБАР
+           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (MP3 CACHE & GITHUB)
            ========================================================================= */
         let toneStarted = false;
         let uiSynth;
         
-        // Англи үг унших глобал хувьсагчид
-        const ttsAudio = new Audio(); 
-        let currentPronunciationText = ""; // Одоо идэвхтэй байгаа үг
-        let isSpeaking = false; // Давхар даралтаас сэргийлэх хаалт
+        // --- GITHUB АШИГЛАХ ТОХИРГОО ---
+        // Хэрэв та өөрөө MP3 бэлдээд Github-д оруулсан бол доорх false-ийг true болгож линкийг солино.
+        // Дууны нэр нь Hydrogen.mp3 гэх мэт Англи нэрээрээ байх шаардлагатай.
+        const USE_GITHUB_AUDIO = false; 
+        const GITHUB_AUDIO_URL = "https://raw.githubusercontent.com/ТАНЫ_GITHUB_НЭР/ТАНЫ_REPO/main/audio/";
+        
+        // Default: Хурдан бөгөөд найдвартай толь бичгийн API (АНУ аялгатай MP3 шууд буцаана)
+        const DICT_API_URL = "https://dict.youdao.com/dictvoice?audio="; 
+        
+        const audioCache = {};
+        let currentPronunciationText = "";
+
+        // Аудионы линк үүсгэх
+        function getAudioUrl(word) {
+            if (USE_GITHUB_AUDIO) {
+                return GITHUB_AUDIO_URL + encodeURIComponent(word) + ".mp3"; 
+            }
+            return DICT_API_URL + encodeURIComponent(word) + "&type=2";
+        }
+
+        // Санах ойд урьдчилж татаж авах (Товч дарах үед гацахгүй шууд дуугарахын тулд)
+        function preloadAudio(word) {
+            if (!word || audioCache[word]) return;
+            const audio = new Audio();
+            audio.src = getAudioUrl(word);
+            audio.preload = "auto"; // Цаанаа чимээгүй татах
+            audioCache[word] = audio;
+        }
+
+        // Сонгосон түвшний бүх үгсийг далд татаж бэлдэх
+        function preloadAllActiveElements() {
+            if(!activeElements) return;
+            let delay = 0;
+            activeElements.forEach(el => {
+                setTimeout(() => preloadAudio(el.en), delay);
+                delay += 100; // 0.1 секундын зайтайгаар татаж утасны ачааллыг багасгана
+            });
+            // Шалгалтанд зориулсан үгсийг нэмж татах
+            setTimeout(() => preloadAudio("Game over"), delay + 100);
+            setTimeout(() => preloadAudio("Congratulations"), delay + 200);
+        }
+
+        // Үгийг яг Sound Effect шиг шууд тоглуулах
+        function playWordAudio(word) {
+            if (!word) return;
+            try {
+                let audio = audioCache[word];
+                if (!audio) {
+                    audio = new Audio(getAudioUrl(word));
+                    audioCache[word] = audio;
+                }
+                audio.currentTime = 0; // Давхар дарвал эхнээс нь тоглоно
+                audio.play().catch(e => {
+                    console.warn("Audio play blocked by browser:", e);
+                });
+            } catch (error) {
+                console.error("Audio playback error:", error);
+            }
+        }
 
         async function initAudio() {
             try {
@@ -451,43 +506,6 @@
                 }
             } catch (error) {
                 console.warn("SFX Error", error);
-            }
-        }
-
-        // 100% Найдвартай Англи хэлээр унших функц (Hybrid: MP3 -> WebSpeech)
-        function speakEnglish(text) {
-            if (!text) return;
-            if (isSpeaking) return; 
-            
-            isSpeaking = true;
-            setTimeout(() => { isSpeaking = false; }, 800); 
-
-            try {
-                // ШУУД WebSpeech API ашиглах (MP3 хасагдсан)
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel(); // Өмнөх дуудлагыг зогсоох
-                    
-                    const utter = new SpeechSynthesisUtterance(text);
-                    utter.lang = 'en-US'; // Англи хэл дээр унших
-                    utter.rate = 0.9;
-                    
-                    // Android/Samsung дээр алдааг бууруулахын тулд тохиргоо нэмэх
-                    const voices = window.speechSynthesis.getVoices();
-                    if (voices.length > 0) {
-                        const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
-                        if (enVoice) {
-                            utter.voice = enVoice;
-                        }
-                    }
-
-                    window.speechSynthesis.speak(utter);
-                    
-                    if(window.speechSynthesis.paused) {
-                        window.speechSynthesis.resume();
-                    }
-                }
-            } catch (e) {
-                console.error("Audio error:", e);
             }
         }
 
@@ -816,6 +834,9 @@
             
             generateGrid(); 
             switchMode('grid');
+            
+            // ШИНЭ: Тоглоом эхлэх үед дуудлагын MP3 файлуудыг далд татаж бэлдэх
+            preloadAllActiveElements();
         }
 
         btnMenu.addEventListener('click', () => {
@@ -972,7 +993,7 @@
             e.preventDefault();
             e.stopPropagation();
             if (currentPronunciationText) {
-                speakEnglish(currentPronunciationText);
+                playWordAudio(currentPronunciationText);
             }
         }
         document.getElementById('modal-speak-btn').addEventListener('click', triggerAudioGlobal);
@@ -1052,7 +1073,7 @@
                 displayQ = currentQuizElement.mn; correctAns = currentQuizElement.sym;
             }
             quizTargetName.textContent = displayQ;
-            speakEnglish(currentQuizElement.en); // Асуулт гарах үед Англиар унших
+            playWordAudio(currentQuizElement.en); // Асуулт гарах үед Англиар унших
             spawnFoods(correctAns, qType);
         }
 
@@ -1164,7 +1185,7 @@
             document.getElementById('snake-game-over').classList.remove('hidden');
             document.getElementById('snake-game-over').classList.add('flex');
             document.getElementById('snake-final-score').textContent = `Таны оноо: ${score}`;
-            speakEnglish(lives <= 0 ? "Game over" : "Congratulations");
+            playWordAudio(lives <= 0 ? "Game over" : "Congratulations");
         }
 
         document.addEventListener('keydown', (e) => {
@@ -1195,10 +1216,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); 
             generateGrid();
-            // Сүүлийн үеийн хөтчүүд WebSpeech API-г ачаалахын тулд
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.getVoices();
-            }
+            preloadAllActiveElements(); // Апп нээгдэх үед шууд бэлдэж эхлэх
         });
     </script>
 </body>
