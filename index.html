@@ -320,10 +320,16 @@
                 </button>
                 <div class="flex flex-col items-center gap-2">
                     <span id="car-counter" class="text-slate-400 font-bold bg-slate-800 px-4 py-2 rounded-full shadow-inner">1 / 30</span>
-                    <button id="car-shuffle" class="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full shadow-md transition active:scale-95" title="Картуудыг холих">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> 
-                        Холих
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <!-- Шинээр нэмэгдсэн Гадна байрлах дууны товч -->
+                        <button id="carousel-speak-btn" class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full shadow-md transition active:scale-95 cursor-pointer" title="Дуудлага сонсох">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+                        </button>
+                        <button id="car-shuffle" class="flex items-center gap-1 text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-full shadow-md transition active:scale-95" title="Картуудыг холих">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> 
+                            Холих
+                        </button>
+                    </div>
                 </div>
                 <button id="car-next" class="bg-slate-700 hover:bg-slate-600 text-white rounded-full p-4 shadow-lg transition active:scale-95 z-10">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
@@ -943,9 +949,6 @@
 
                     <!-- ХУУДАСНЫ АР ТАЛ (BACK) -->
                     <div class="back rounded-[1.5rem] p-6 bg-slate-800 relative flex flex-col items-center text-center shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 w-full min-h-[400px]" style="border-color: ${colors[0]}">
-                        <button id="carousel-speak-btn" class="absolute top-4 left-4 text-blue-400 hover:text-blue-300 bg-slate-900 rounded-full p-2 shadow-lg hover:scale-110 transition z-50 cursor-pointer" onclick="event.stopPropagation();">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                        </button>
                         
                         <div class="w-20 h-20 rounded-2xl flex flex-col items-center justify-center mb-4 shadow-lg mt-2" style="background: ${bgGradient}">
                             <div class="text-3xl font-black">${data.sym}</div>
@@ -987,18 +990,6 @@
             if (direction === 'prev') carouselCardContainer.classList.add('slide-in-left');
 
             carouselCardContainer.innerHTML = getCardHTML(data);
-            
-            // Дууны товчийг картан дээр шинээр холбож өгөх (Messenger-т зориулж touchstart нэмэв)
-            const carSpeakBtn = document.getElementById('carousel-speak-btn');
-            if (carSpeakBtn) {
-                const handleCarSpeak = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    speakWord(data.en); // Англи бүтэн нэрээр нь унших
-                };
-                carSpeakBtn.addEventListener('click', handleCarSpeak);
-                carSpeakBtn.addEventListener('touchstart', handleCarSpeak, {passive: false});
-            }
         }
 
         document.getElementById('car-next').addEventListener('click', () => {
@@ -1028,6 +1019,21 @@
             carouselIndex = 0;
             renderCarouselCard();
         });
+
+        // Картын гадна байрлах дууны товчийг ажиллуулах
+        const carSpeakBtn = document.getElementById('carousel-speak-btn');
+        if (carSpeakBtn) {
+            const handleCarSpeak = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (activeElements.length > 0) {
+                    const data = activeElements[carouselIndex];
+                    speakWord(data.en);
+                }
+            };
+            carSpeakBtn.addEventListener('click', handleCarSpeak);
+            carSpeakBtn.addEventListener('touchstart', handleCarSpeak, {passive: false});
+        }
 
         // Утасны дэлгэц дээр Swipe хийх тохиргоо
         carouselCardContainer.addEventListener('touchstart', e => {
