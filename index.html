@@ -457,26 +457,35 @@
         // 100% Найдвартай Англи хэлээр унших функц (Hybrid: MP3 -> WebSpeech)
         function speakEnglish(text) {
             if (!text) return;
-            if (isSpeaking) return; // Давхар даралтыг хаах
+            if (isSpeaking) return; 
             
             isSpeaking = true;
-            setTimeout(() => { isSpeaking = false; }, 800); // 0.8 сек дараа дахин дарах эрх нээгдэнэ
+            setTimeout(() => { isSpeaking = false; }, 800); 
 
             try {
-                // 1. Google Translate MP3 ашиглах (Хамгийн найдвартай, Messenger-т гацахгүй)
-                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(text)}`;
-                ttsAudio.src = url;
-                ttsAudio.play().catch(err => {
-                    console.warn("MP3 Audio blocked, falling back to Web Speech API:", err);
-                    // 2. Хэрэв MP3 хаагдвал (Offline гэх мэт) утасны өөрийнх рүү шилжих
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const utter = new SpeechSynthesisUtterance(text);
-                        utter.lang = 'en-US';
-                        utter.rate = 0.9;
-                        window.speechSynthesis.speak(utter);
+                // ШУУД WebSpeech API ашиглах (MP3 хасагдсан)
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel(); // Өмнөх дуудлагыг зогсоох
+                    
+                    const utter = new SpeechSynthesisUtterance(text);
+                    utter.lang = 'en-US'; // Англи хэл дээр унших
+                    utter.rate = 0.9;
+                    
+                    // Android/Samsung дээр алдааг бууруулахын тулд тохиргоо нэмэх
+                    const voices = window.speechSynthesis.getVoices();
+                    if (voices.length > 0) {
+                        const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
+                        if (enVoice) {
+                            utter.voice = enVoice;
+                        }
                     }
-                });
+
+                    window.speechSynthesis.speak(utter);
+                    
+                    if(window.speechSynthesis.paused) {
+                        window.speechSynthesis.resume();
+                    }
+                }
             } catch (e) {
                 console.error("Audio error:", e);
             }
