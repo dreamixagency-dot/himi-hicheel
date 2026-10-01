@@ -407,73 +407,58 @@
 
     <script>
         /* =========================================================================
-           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (MP3 CACHE & GITHUB)
+           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (MESSENGER TUGSIIN SHIIDEL)
            ========================================================================= */
         let toneStarted = false;
         let uiSynth;
         
-        // --- GITHUB АШИГЛАХ ТОХИРГОО ---
-        // Хэрэв та өөрөө MP3 бэлдээд Github-д оруулсан бол доорх false-ийг true болгож линкийг солино.
-        // Дууны нэр нь Hydrogen.mp3 гэх мэт Англи нэрээрээ байх шаардлагатай.
-        const USE_GITHUB_AUDIO = false; 
-        const GITHUB_AUDIO_URL = "https://raw.githubusercontent.com/ТАНЫ_GITHUB_НЭР/ТАНЫ_REPO/main/audio/";
-        
-        // ЗАСВАР: Google Translate-ийн албан ёсны сервер. (Бүх 118 химийн элемент 100% байгаа)
-        const DICT_API_URL = "https://translate.googleapis.com/translate_tts?ie=UTF-8&tl=en-US&client=gtx&q="; 
-        
-        const audioCache = {};
+        // 1. MESSENGER ДЭЭР АЖИЛЛУУЛАХ ГАНЦ НУУЦ: Цор ганц Audio обьект ашиглах
+        const ttsAudio = new Audio();
+        let isAudioUnlocked = false;
+
+        // Дэлгэцэнд хуруу хүрэх үед чимээгүй дуу тоглуулж утасны аудиог сэрээх
+        function unlockAudio() {
+            if (isAudioUnlocked) return;
+            ttsAudio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjI3LjEwMAAAAAAAAAAAAAAA//MUxAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//MUxAQAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+            const p = ttsAudio.play();
+            if (p !== undefined) {
+                p.then(() => { isAudioUnlocked = true; }).catch(() => {});
+            }
+            document.removeEventListener('touchstart', unlockAudio);
+            document.removeEventListener('click', unlockAudio);
+        }
+        document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+        document.addEventListener('click', unlockAudio, { once: true, passive: true });
+
         let currentPronunciationText = "";
 
-        // Аудионы линк үүсгэх
-        function getAudioUrl(word) {
-            if (USE_GITHUB_AUDIO) {
-                return GITHUB_AUDIO_URL + encodeURIComponent(word) + ".mp3"; 
-            }
-            return DICT_API_URL + encodeURIComponent(word);
-        }
-
-        // Санах ойд урьдчилж татаж авах (Товч дарах үед гацахгүй шууд дуугарахын тулд)
-        function preloadAudio(word) {
-            if (!word || audioCache[word]) return;
-            const audio = new Audio();
-            audio.src = getAudioUrl(word);
-            audio.preload = "auto"; // Цаанаа чимээгүй татах
-            audioCache[word] = audio;
-        }
-
-        // Сонгосон түвшний бүх үгсийг далд татаж бэлдэх
-        function preloadAllActiveElements() {
-            if(!activeElements) return;
-            let delay = 0;
-            activeElements.forEach(el => {
-                setTimeout(() => preloadAudio(el.en), delay);
-                // ЗАСВАР: Google серверийг ачааллаж блоклуулахгүйн тулд 0.25 секундын зайтай татна
-                delay += 250; 
-            });
-            // Шалгалтанд зориулсан үгсийг нэмж татах
-            setTimeout(() => preloadAudio("Game over"), delay + 250);
-            setTimeout(() => preloadAudio("Congratulations"), delay + 500);
-        }
-
-        // Үгийг яг Sound Effect шиг шууд тоглуулах
+        // 2. ДУУДЛАГА УНШИХ (On-Demand татах)
         function playWordAudio(word) {
             if (!word) return;
             try {
-                let audio = audioCache[word];
-                // Хэрэв өмнө нь татаж чадаагүй сүлжээний алдаа гарсан бол дахин шинээр дуудах
-                if (!audio || audio.error) {
-                    audio = new Audio(getAudioUrl(word));
-                    audioCache[word] = audio;
+                // client=tw-ob нь Google-ийн хамгийн хурдан бөгөөд найдвартай MP3 сервер
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(word)}`;
+                ttsAudio.src = url;
+                
+                const playPromise = ttsAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("MP3 blocked, trying local speech...", error);
+                        // Хэрэв интернэт тасарвал утасны өөрийнх нь уншигч руу шилжих (Fallback)
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            const u = new SpeechSynthesisUtterance(word);
+                            u.lang = 'en-US';
+                            window.speechSynthesis.speak(u);
+                        }
+                    });
                 }
-                audio.currentTime = 0; // Давхар дарвал эхнээс нь тоглоно
-                audio.play().catch(e => {
-                    console.warn("Audio play blocked by browser:", e);
-                });
             } catch (error) {
-                console.error("Audio playback error:", error);
+                console.error("Audio error:", error);
             }
         }
 
+        // 3. SOUND EFFECTS (Tone.js)
         async function initAudio() {
             try {
                 if (!toneStarted && typeof Tone !== 'undefined') {
@@ -486,40 +471,28 @@
                     toneStarted = true;
                 }
             } catch (error) {
-                console.warn("Tone.js blocked by browser", error);
+                console.warn("Tone.js blocked", error);
             }
         }
+
+        document.addEventListener('pointerdown', async () => {
+            if (!toneStarted) await initAudio();
+        }, { once: true, passive: true });
 
         function playSfx(type) {
             try {
                 if (!toneStarted || !uiSynth || typeof Tone === 'undefined') return;
                 const now = Tone.now();
-                if (type === 'click') {
-                    uiSynth.triggerAttackRelease("A5", "32n", now);
-                } else if (type === 'correct') {
-                    uiSynth.triggerAttackRelease("C5", "16n", now);
-                    uiSynth.triggerAttackRelease("E5", "16n", now + 0.1);
-                    uiSynth.triggerAttackRelease("G5", "8n", now + 0.2);
-                } else if (type === 'wrong') {
-                    uiSynth.triggerAttackRelease("D3", "8n", now);
-                    uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15);
-                } else if (type === 'swipe') {
-                    uiSynth.triggerAttackRelease("F4", "32n", now);
-                }
-            } catch (error) {
-                console.warn("SFX Error", error);
-            }
+                if (type === 'click') uiSynth.triggerAttackRelease("A5", "32n", now);
+                else if (type === 'correct') { uiSynth.triggerAttackRelease("C5", "16n", now); uiSynth.triggerAttackRelease("E5", "16n", now + 0.1); uiSynth.triggerAttackRelease("G5", "8n", now + 0.2); }
+                else if (type === 'wrong') { uiSynth.triggerAttackRelease("D3", "8n", now); uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15); }
+                else if (type === 'swipe') uiSynth.triggerAttackRelease("F4", "32n", now);
+            } catch (error) {}
         }
-
-        // Анхны даралтаар Audio Context-ийг асаах
-        document.addEventListener('pointerdown', async () => {
-            if (!toneStarted) await initAudio();
-        }, { once: true, passive: true });
 
         // Энгийн товчнуудын click sound
         document.addEventListener('click', (e) => {
             const isClickable = e.target.closest('button') || e.target.closest('.element');
-            // Дууны товч биш бол click чимээ гаргана
             if (isClickable && !e.target.closest('#carousel-speak-btn') && !e.target.closest('#modal-speak-btn')) {
                 if(e.target.closest('#car-prev') || e.target.closest('#car-next')) return;
                 if (typeof isQuizPlaying !== 'undefined' && isQuizPlaying && e.target.closest('.element')) return;
@@ -836,9 +809,6 @@
             
             generateGrid(); 
             switchMode('grid');
-            
-            // ШИНЭ: Тоглоом эхлэх үед дуудлагын MP3 файлуудыг далд татаж бэлдэх
-            preloadAllActiveElements();
         }
 
         btnMenu.addEventListener('click', () => {
@@ -1218,7 +1188,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); 
             generateGrid();
-            preloadAllActiveElements(); // Апп нээгдэх үед шууд бэлдэж эхлэх
         });
     </script>
 </body>
