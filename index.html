@@ -407,12 +407,17 @@
 
     <script>
         /* =========================================================================
-           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (MESSENGER TUGSIIN SHIIDEL)
+           1. ДУУ ЧИМЭЭ БОЛОН АУДИО ТОХИРГОО (УРЬДЧИЛАН ТАТАХ & GITHUB)
            ========================================================================= */
         let toneStarted = false;
         let uiSynth;
         
-        // 1. MESSENGER ДЭЭР АЖИЛЛУУЛАХ ГАНЦ НУУЦ: Цор ганц Audio обьект ашиглах
+        // --- ТАНЫ УДИРДАХ ТОХИРГОО ---
+        const USE_GITHUB_AUDIO = false; // GitHub-ээс өөрийн бэлдсэн дууг уншуулах бол үүнийг true болгоно уу
+        const GITHUB_AUDIO_BASE_URL = "https://raw.githubusercontent.com/Таны-Нэр/repo/main/audio/"; // Өөрийн MP3 линкийг энд тавина
+        // ------------------------------
+
+        const audioCache = {}; // Татсан дуунуудын хаягийг хадгалах санах ой
         const ttsAudio = new Audio();
         let isAudioUnlocked = false;
 
@@ -432,25 +437,53 @@
 
         let currentPronunciationText = "";
 
-        // 2. ДУУДЛАГА УНШИХ (On-Demand татах)
+        // 1. БҮХ ДУУГ ДАЛД ТАТАЖ БЭЛДЭХ (Preload)
+        // Зөвхөн тухайн сонгосон түвшний (Active) элементүүдийг татах
+        function preloadAllActiveElements() {
+            if (!activeElements || activeElements.length === 0) return;
+            let delay = 0;
+            // Утасны серверийг гацаахгүйн тулд 0.1 секундын зайтайгаар цувруулж татна
+            activeElements.forEach(el => {
+                const word = el.en;
+                if (!audioCache[word]) {
+                    setTimeout(() => {
+                        if (USE_GITHUB_AUDIO) {
+                            audioCache[word] = `${GITHUB_AUDIO_BASE_URL}${word.toLowerCase()}.mp3`;
+                        } else {
+                            // Youdao API - Хамгийн хурдан нээлттэй толь бичиг (IP block хийхгүй)
+                            audioCache[word] = `https://dict.youdao.com/dictvoice?type=1&audio=${encodeURIComponent(word)}`;
+                        }
+                    }, delay);
+                    delay += 100; 
+                }
+            });
+        }
+        
+        // 2. ДУУГ ТОГЛУУЛАХ (Sound effect шиг шууд)
         function playWordAudio(word) {
             if (!word) return;
             try {
-                // client=tw-ob нь Google-ийн хамгийн хурдан бөгөөд найдвартай MP3 сервер
-                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(word)}`;
-                ttsAudio.src = url;
+                let url = audioCache[word];
                 
+                // Хэрэв санах ойд амжиж татагдаагүй байвал шууд үүсгэх
+                if (!url) {
+                    if (USE_GITHUB_AUDIO) {
+                        url = `${GITHUB_AUDIO_BASE_URL}${word.toLowerCase()}.mp3`;
+                    } else {
+                        url = `https://dict.youdao.com/dictvoice?type=1&audio=${encodeURIComponent(word)}`;
+                    }
+                    audioCache[word] = url; // Дараагийн удаа шууд уншихаар хадгалах
+                }
+                
+                ttsAudio.src = url;
                 const playPromise = ttsAudio.play();
+                
                 if (playPromise !== undefined) {
                     playPromise.catch(error => {
-                        console.warn("MP3 blocked, trying local speech...", error);
-                        // Хэрэв интернэт тасарвал утасны өөрийнх нь уншигч руу шилжих (Fallback)
-                        if ('speechSynthesis' in window) {
-                            window.speechSynthesis.cancel();
-                            const u = new SpeechSynthesisUtterance(word);
-                            u.lang = 'en-US';
-                            window.speechSynthesis.speak(u);
-                        }
+                        console.warn("Youdao API blocked or missing word, trying Fallback to Google...", error);
+                        // Хэрэв Youdao ажиллахгүй/ховор үг олдохгүй бол нөөц төлөвлөгөөг (Google API) ажиллуулж нөхөж татах
+                        ttsAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-US&client=tw-ob&q=${encodeURIComponent(word)}`;
+                        ttsAudio.play().catch(e => console.warn("Google Fallback failed:", e));
                     });
                 }
             } catch (error) {
@@ -459,40 +492,36 @@
         }
 
         // 3. SOUND EFFECTS (Tone.js)
-        async function initAudio() {
-            try {
-                if (!toneStarted && typeof Tone !== 'undefined') {
-                    await Tone.start();
-                    uiSynth = new Tone.PolySynth(Tone.Synth, {
-                        oscillator: { type: "triangle" },
-                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }
-                    }).toDestination();
-                    uiSynth.volume.value = -12; 
-                    toneStarted = true;
-                }
-            } catch (error) {
-                console.warn("Tone.js blocked", error);
-            }
-        }
-
-        document.addEventListener('pointerdown', async () => {
-            if (!toneStarted) await initAudio();
-        }, { once: true, passive: true });
-
         function playSfx(type) {
             try {
                 if (!toneStarted || !uiSynth || typeof Tone === 'undefined') return;
                 const now = Tone.now();
-                if (type === 'click') uiSynth.triggerAttackRelease("A5", "32n", now);
-                else if (type === 'correct') { uiSynth.triggerAttackRelease("C5", "16n", now); uiSynth.triggerAttackRelease("E5", "16n", now + 0.1); uiSynth.triggerAttackRelease("G5", "8n", now + 0.2); }
-                else if (type === 'wrong') { uiSynth.triggerAttackRelease("D3", "8n", now); uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15); }
-                else if (type === 'swipe') uiSynth.triggerAttackRelease("F4", "32n", now);
-            } catch (error) {}
+                if (type === 'click') {
+                    uiSynth.triggerAttackRelease("A5", "32n", now);
+                } else if (type === 'correct') {
+                    uiSynth.triggerAttackRelease("C5", "16n", now);
+                    uiSynth.triggerAttackRelease("E5", "16n", now + 0.1);
+                    uiSynth.triggerAttackRelease("G5", "8n", now + 0.2);
+                } else if (type === 'wrong') {
+                    uiSynth.triggerAttackRelease("D3", "8n", now);
+                    uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15);
+                } else if (type === 'swipe') {
+                    uiSynth.triggerAttackRelease("F4", "32n", now);
+                }
+            } catch (error) {
+                console.warn("SFX Error", error);
+            }
         }
+
+        // Анхны даралтаар Audio Context-ийг асаах
+        document.addEventListener('pointerdown', async () => {
+            if (!toneStarted) await initAudio();
+        }, { once: true, passive: true });
 
         // Энгийн товчнуудын click sound
         document.addEventListener('click', (e) => {
             const isClickable = e.target.closest('button') || e.target.closest('.element');
+            // Дууны товч биш бол click чимээ гаргана
             if (isClickable && !e.target.closest('#carousel-speak-btn') && !e.target.closest('#modal-speak-btn')) {
                 if(e.target.closest('#car-prev') || e.target.closest('#car-next')) return;
                 if (typeof isQuizPlaying !== 'undefined' && isQuizPlaying && e.target.closest('.element')) return;
@@ -809,6 +838,9 @@
             
             generateGrid(); 
             switchMode('grid');
+            
+            // ШИНЭ: Тоглоом эхлэх үед дуудлагын MP3 файлуудыг далд татаж бэлдэх
+            preloadAllActiveElements();
         }
 
         btnMenu.addEventListener('click', () => {
@@ -1188,6 +1220,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); 
             generateGrid();
+            preloadAllActiveElements(); // Апп нээгдэх үед шууд бэлдэж эхлэх
         });
     </script>
 </body>
