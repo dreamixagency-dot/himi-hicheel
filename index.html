@@ -14,14 +14,19 @@
             color: #f8fafc;
         }
         
+        /* Гар утасны цэсний scrollbar-г нууж илүү цэвэрхэн харагдуулах */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
         .periodic-table {
             display: grid;
-            grid-template-columns: repeat(18, 1fr);
+            /* Гар утсан дээр элементүүд хумигдаж алга болохоос сэргийлж хүчээр өргөнийг барих */
+            grid-template-columns: repeat(18, minmax(45px, 1fr)); 
             gap: 4px;
-            max-width: 1200px;
+            width: max-content; /* Хамгийн чухал: Хүснэгтийг дэлгэцэнд баригдуулахгүй томруулна */
             margin: 0 auto;
             padding: 20px;
-            overflow-x: auto;
+            overflow-x: visible;
         }
 
         .element {
@@ -183,11 +188,15 @@
         .no-select { user-select: none; -webkit-user-select: none; }
 
         @media (max-width: 768px) {
-            .periodic-table { gap: 2px; padding: 10px; }
+            .periodic-table { 
+                grid-template-columns: repeat(18, minmax(35px, 1fr)); /* Утсан дээр баталгаатай харагдах хэмжээ */
+                gap: 2px; 
+                padding: 10px; 
+            }
             .element .symbol { font-size: 0.8rem; }
             .element .number { font-size: 0.4rem; }
             .element .name-mn { display: none; } /* Hide names on very small screens */
-            .element { min-width: 30px; min-height: 30px; border-radius: 4px; }
+            .element { min-width: 35px; min-height: 35px; border-radius: 4px; }
         }
     </style>
 </head>
@@ -371,40 +380,55 @@
         let uiSynth;
 
         async function initAudio() {
-            if (!toneStarted) {
-                await Tone.start();
-                uiSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: "triangle" },
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }
-                }).toDestination();
-                uiSynth.volume.value = -12; // Дууны түвшинг тохируулах
-                toneStarted = true;
+            try {
+                if (!toneStarted && typeof Tone !== 'undefined') {
+                    await Tone.start();
+                    uiSynth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }
+                    }).toDestination();
+                    uiSynth.volume.value = -12; // Дууны түвшинг тохируулах
+                    toneStarted = true;
+                }
+            } catch (error) {
+                console.warn("Audio Context blocked by browser", error);
             }
         }
 
         function playSfx(type) {
-            if (!toneStarted || !uiSynth) return;
-            const now = Tone.now();
-            if (type === 'click') {
-                uiSynth.triggerAttackRelease("A5", "32n", now);
-            } else if (type === 'correct') {
-                uiSynth.triggerAttackRelease("C5", "16n", now);
-                uiSynth.triggerAttackRelease("E5", "16n", now + 0.1);
-                uiSynth.triggerAttackRelease("G5", "8n", now + 0.2);
-            } else if (type === 'wrong') {
-                uiSynth.triggerAttackRelease("D3", "8n", now);
-                uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15);
-            } else if (type === 'swipe') {
-                uiSynth.triggerAttackRelease("F4", "32n", now);
+            try {
+                if (!toneStarted || !uiSynth || typeof Tone === 'undefined') return;
+                const now = Tone.now();
+                if (type === 'click') {
+                    uiSynth.triggerAttackRelease("A5", "32n", now);
+                } else if (type === 'correct') {
+                    uiSynth.triggerAttackRelease("C5", "16n", now);
+                    uiSynth.triggerAttackRelease("E5", "16n", now + 0.1);
+                    uiSynth.triggerAttackRelease("G5", "8n", now + 0.2);
+                } else if (type === 'wrong') {
+                    uiSynth.triggerAttackRelease("D3", "8n", now);
+                    uiSynth.triggerAttackRelease("C#3", "4n", now + 0.15);
+                } else if (type === 'swipe') {
+                    uiSynth.triggerAttackRelease("F4", "32n", now);
+                }
+            } catch (error) {
+                console.warn("SFX Error", error);
             }
         }
 
         // Дууны системийг идэвхжүүлэх (Touch болон Click хоёуланг нь сонсох)
         const unlockAudio = async () => {
-            await initAudio();
-            // Хөтчийн дууг нээх хоосон дуудлага (iOS Safari-д зориулав)
-            if (synth && synth.getVoices().length === 0) {
-                synth.getVoices();
+            try {
+                await initAudio();
+                // Хөтчийн дууг нээх хоосон дуудлага (iOS Safari-д зориулав)
+                if (typeof window !== 'undefined' && window.speechSynthesis) {
+                    const synth = window.speechSynthesis;
+                    if (synth.getVoices && synth.getVoices().length === 0) {
+                        synth.getVoices();
+                    }
+                }
+            } catch (error) {
+                console.warn("Audio unlock failed", error);
             }
         };
 
@@ -413,14 +437,14 @@
 
         // Хэрэглэгч анх дэлгэцэнд дарахад дууны системийг идэвхжүүлэх
         document.addEventListener('click', async (e) => {
-            await unlockAudio();
+            try { await unlockAudio(); } catch (err) {}
             const isClickable = e.target.closest('button') || e.target.closest('.element');
             
             // Дуу уншуулах товчноос бусад үед click effect дуугаргах
             if (isClickable && !e.target.closest('#carousel-speak-btn') && !e.target.closest('#speak-btn')) {
                 // Swipe болон Quiz-ийн өөрийн дууг давхардуулахгүй байх
                 if(e.target.closest('#car-prev') || e.target.closest('#car-next')) return;
-                if (isQuizPlaying && e.target.closest('.element')) return;
+                if (typeof isQuizPlaying !== 'undefined' && isQuizPlaying && e.target.closest('.element')) return;
 
                 playSfx('click');
             }
@@ -572,7 +596,7 @@
         let currentQuizElement = null;
         let score = 0;
         let lives = 3;
-        const synth = window.speechSynthesis;
+        const synth = (typeof window !== 'undefined' && window.speechSynthesis) ? window.speechSynthesis : null;
 
         // Data Pools for Difficulty
         const EASY_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 47, 50, 53, 78, 79, 80, 82, 92];
@@ -731,7 +755,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
-            synth.cancel();
+            try { if (synth && synth.cancel) synth.cancel(); } catch (e) {}
         }
 
         closeBtn.addEventListener('click', closeModal);
@@ -819,7 +843,7 @@
             carouselView.classList.add('hidden');
             tableContainer.classList.remove('quiz-active');
             isQuizPlaying = false;
-            synth.cancel();
+            try { if (synth && synth.cancel) synth.cancel(); } catch (e) {}
 
             // Сонгосон дэлгэцийг гаргах
             if (mode === 'grid') {
@@ -962,20 +986,25 @@
         ----------------------------------------- */
         
         function speakWord(text) {
-            if (!synth) return;
-            synth.cancel(); // stop current
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US'; 
-            
-            const voices = synth.getVoices();
-            const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
-            if(enVoice) utterance.voice = enVoice;
-            
-            utterance.rate = 0.9;
-            
-            // Утсан дээр setTimeout ашиглавал дуугардаггүй/гацдаг тул шууд дуудна (iOS Safari policy)
-            synth.speak(utterance);
+            try {
+                if (typeof window === 'undefined' || !window.speechSynthesis) return;
+                const synthObj = window.speechSynthesis;
+                synthObj.cancel(); // stop current
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; 
+                
+                const voices = synthObj.getVoices();
+                const enVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US')) || voices.find(v => v.lang.includes('en'));
+                if(enVoice) utterance.voice = enVoice;
+                
+                utterance.rate = 0.9;
+                
+                // Утсан дээр setTimeout ашиглавал дуугардаггүй/гацдаг тул шууд дуудна (iOS Safari policy)
+                synthObj.speak(utterance);
+            } catch (error) {
+                console.warn("Speech Synthesis blocked:", error);
+            }
         }
 
         // Могой тоглоомын хувьсагчид
@@ -1236,8 +1265,8 @@
             document.getElementById('snake-game-over').classList.add('flex');
             document.getElementById('snake-final-score').textContent = `Таны оноо: ${score}`;
             
-            if (lives <= 0) speakWord("Тоглоом дууслаа");
-            else speakWord("Баяр хүргэе");
+            if (lives <= 0) speakWord("Game over");
+            else speakWord("Congratulations");
         }
 
         function updateScoreUI() {
@@ -1278,8 +1307,13 @@
             activeElements = elementsData.filter(e => EASY_IDS.includes(e.n)); // Анхны утга
             generateGrid();
             
-            if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = () => {};
+            try {
+                // Зарим утасны хөтөч дээр SpeechSynthesis огт байдаггүйгээс болж гацдаг байсныг хамгаалав
+                if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = () => {};
+                }
+            } catch (error) {
+                console.warn("Speech API bypass error:", error);
             }
         });
 
